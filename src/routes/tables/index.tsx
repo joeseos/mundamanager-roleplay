@@ -40,7 +40,7 @@ function TablesIndex() {
       <section>
         <h1 className="text-2xl font-bold">Your tables</h1>
         {myTables.length === 0 ? (
-          <p className="mt-2 text-stone-400">
+          <p className="mt-2 text-stone-300">
             Nothing yet. Create a table to run one, or join with a code.
           </p>
         ) : (
@@ -50,10 +50,10 @@ function TablesIndex() {
                 <Link
                   to="/tables/$tableId"
                   params={{ tableId: table.id }}
-                  className="flex items-center justify-between rounded border border-stone-800 p-3 hover:bg-stone-900"
+                  className="flex items-center justify-between rounded border border-stone-800 bg-stone-950/60 p-3 hover:bg-stone-900/80"
                 >
                   <span className="font-medium">{table.name}</span>
-                  <span className="text-xs uppercase tracking-wide text-stone-400">
+                  <span className="text-xs uppercase tracking-wide text-stone-300">
                     {table.role}
                   </span>
                 </Link>
@@ -72,7 +72,7 @@ function TablesIndex() {
             placeholder="Table name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border border-stone-700 bg-stone-900 px-3 py-2"
+            className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
           />
           <button
             type="submit"
@@ -90,11 +90,11 @@ function TablesIndex() {
             placeholder="Join code"
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            className="w-full rounded border border-stone-700 bg-stone-900 px-3 py-2 font-mono tracking-widest"
+            className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2 font-mono tracking-widest"
           />
           <button
             type="submit"
-            className="w-full rounded border border-stone-700 px-3 py-2 hover:bg-stone-900"
+            className="w-full rounded border border-stone-700 px-3 py-2 hover:bg-stone-900/80"
           >
             Join as player
           </button>

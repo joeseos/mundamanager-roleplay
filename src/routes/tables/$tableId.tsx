@@ -40,13 +40,13 @@ function TableDetail() {
     <main className="mx-auto max-w-3xl space-y-8 p-8">
       <header>
         <h1 className="text-2xl font-bold">{table.name}</h1>
-        <p className="mt-1 text-sm uppercase tracking-wide text-stone-400">
+        <p className="mt-1 text-sm uppercase tracking-wide text-stone-300">
           You are the {role}
         </p>
         {table.joinCode ? (
-          <p className="mt-3 text-sm text-stone-400">
+          <p className="mt-3 text-sm text-stone-300">
             Join code{' '}
-            <code className="rounded bg-stone-900 px-2 py-1 font-mono tracking-widest text-amber-400">
+            <code className="rounded bg-stone-900/70 px-2 py-1 font-mono tracking-widest text-amber-400">
               {table.joinCode}
             </code>
           </p>
@@ -56,20 +56,20 @@ function TableDetail() {
       <section>
         <h2 className="font-semibold">Party</h2>
         <dl className="mt-2 grid grid-cols-3 gap-3 text-sm">
-          <div className="rounded border border-stone-800 p-3">
-            <dt className="text-stone-400">Credits</dt>
+          <div className="rounded border border-stone-800 bg-stone-950/60 p-3">
+            <dt className="text-stone-300">Credits</dt>
             <dd className="text-lg">{table.partyCredits}</dd>
           </div>
-          <div className="rounded border border-stone-800 p-3">
-            <dt className="text-stone-400">Loot</dt>
+          <div className="rounded border border-stone-800 bg-stone-950/60 p-3">
+            <dt className="text-stone-300">Loot</dt>
             <dd className="text-lg">{table.partyLoot.length}</dd>
           </div>
-          <div className="rounded border border-stone-800 p-3">
-            <dt className="text-stone-400">Contacts</dt>
+          <div className="rounded border border-stone-800 bg-stone-950/60 p-3">
+            <dt className="text-stone-300">Contacts</dt>
             <dd className="text-lg">{table.partyContacts.length}</dd>
           </div>
         </dl>
-        <p className="mt-2 text-xs text-stone-500">
+        <p className="mt-2 text-xs text-stone-400">
           Party state is shared by the table, not a sum of the characters.
         </p>
       </section>
@@ -80,7 +80,7 @@ function TableDetail() {
           {members.map((member) => (
             <li key={member.userId} className="flex justify-between">
               <span>{member.displayName}</span>
-              <span className="text-stone-400">{member.role}</span>
+              <span className="text-stone-300">{member.role}</span>
             </li>
           ))}
         </ul>
@@ -91,7 +91,7 @@ function TableDetail() {
           {role === 'arbitrator' ? 'Venators' : 'Your Venator'}
         </h2>
         {characters.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-400">No characters yet.</p>
+          <p className="mt-2 text-sm text-stone-300">No characters yet.</p>
         ) : (
           <ul className="mt-2 space-y-3">
             {characters.map((character) => (
@@ -107,7 +107,7 @@ function TableDetail() {
             placeholder="New Venator name"
             value={newCharacter}
             onChange={(e) => setNewCharacter(e.target.value)}
-            className="flex-1 rounded border border-stone-700 bg-stone-900 px-3 py-2"
+            className="flex-1 rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
           />
           <button
             type="submit"
@@ -121,7 +121,7 @@ function TableDetail() {
       <section>
         <h2 className="font-semibold">Sessions</h2>
         {sessions.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-400">No sessions yet.</p>
+          <p className="mt-2 text-sm text-stone-300">No sessions yet.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {sessions.map((session) => (
@@ -129,10 +129,10 @@ function TableDetail() {
                 <Link
                   to="/sessions/$sessionId"
                   params={{ sessionId: session.id }}
-                  className="flex items-center justify-between rounded border border-stone-800 p-3 hover:bg-stone-900"
+                  className="flex items-center justify-between rounded border border-stone-800 bg-stone-950/60 p-3 hover:bg-stone-900/80"
                 >
                   <span>{session.title}</span>
-                  <span className="text-xs text-stone-400">{session.status}</span>
+                  <span className="text-xs text-stone-300">{session.status}</span>
                 </Link>
               </li>
             ))}
@@ -147,7 +147,7 @@ function TableDetail() {
               placeholder="Session title"
               value={sessionTitle}
               onChange={(e) => setSessionTitle(e.target.value)}
-              className="flex-1 rounded border border-stone-700 bg-stone-900 px-3 py-2"
+              className="flex-1 rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
             />
             <button
               type="submit"
@@ -183,11 +183,11 @@ function CharacterCard({ character }: { character: CharacterRow }) {
   }
 
   return (
-    <li className="rounded border border-stone-800 p-3">
+    <li className="rounded border border-stone-800 bg-stone-950/60 p-3">
       <div className="flex items-center justify-between">
         <span className="font-medium">{character.name}</span>
         {canEdit ? null : (
-          <span className="text-xs text-stone-500">read-only</span>
+          <span className="text-xs text-stone-400">read-only</span>
         )}
       </div>
       <textarea
@@ -196,7 +196,7 @@ function CharacterCard({ character }: { character: CharacterRow }) {
         onChange={(e) => setNotes(e.target.value)}
         rows={3}
         placeholder="Placeholder sheet -- free text until the rules are published."
-        className="mt-2 w-full rounded border border-stone-800 bg-stone-900 px-3 py-2 text-sm"
+        className="mt-2 w-full rounded border border-stone-800 bg-stone-900/70 px-3 py-2 text-sm"
       />
       {canEdit ? (
         <button

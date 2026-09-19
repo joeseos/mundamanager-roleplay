@@ -62,7 +62,7 @@ function SessionPage() {
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">{session.title}</h1>
-          <p className="text-sm text-stone-400">
+          <p className="text-sm text-stone-300">
             <Link to="/tables/$tableId" params={{ tableId: session.tableId }}>
               {table.name}
             </Link>
@@ -85,14 +85,14 @@ function SessionPage() {
           <button
             type="button"
             onClick={() => onAdjustCredits(10)}
-            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900"
+            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900/80"
           >
             +10 credits
           </button>
           <button
             type="button"
             onClick={() => onAdjustCredits(-10)}
-            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900"
+            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900/80"
           >
             -10 credits
           </button>
@@ -102,7 +102,7 @@ function SessionPage() {
               await endSession({ data: { sessionId: session.id } })
               await router.invalidate()
             }}
-            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900"
+            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900/80"
           >
             End session
           </button>
@@ -113,10 +113,10 @@ function SessionPage() {
         {events.map((event) => (
           <li
             key={event.id}
-            className="rounded border border-stone-800 p-3 text-sm"
+            className="rounded border border-stone-800 bg-stone-950/60 p-3 text-sm"
             data-seq={event.seq}
           >
-            <div className="flex justify-between text-xs text-stone-500">
+            <div className="flex justify-between text-xs text-stone-400">
               <span>
                 {event.actorUserId ? actorNames[event.actorUserId] ?? 'Someone' : 'System'}
               </span>
@@ -128,19 +128,19 @@ function SessionPage() {
         {pending.map((body, index) => (
           <li
             key={`pending-${index}`}
-            className="rounded border border-dashed border-stone-700 p-3 text-sm opacity-60"
+            className="rounded border border-dashed border-stone-700 bg-stone-950/40 p-3 text-sm opacity-60"
           >
-            <div className="text-xs text-stone-500">{user?.displayName} · sending</div>
+            <div className="text-xs text-stone-400">{user?.displayName} · sending</div>
             <div className="mt-1">{body}</div>
           </li>
         ))}
         {events.length === 0 && pending.length === 0 ? (
-          <li className="text-sm text-stone-400">Nothing has happened yet.</li>
+          <li className="text-sm text-stone-300">Nothing has happened yet.</li>
         ) : null}
       </ol>
 
       {session.status === 'ended' ? (
-        <p className="text-sm text-stone-400">This session has ended.</p>
+        <p className="text-sm text-stone-300">This session has ended.</p>
       ) : (
         <form onSubmit={onPost} className="flex gap-2">
           <input
@@ -148,7 +148,7 @@ function SessionPage() {
             onChange={(e) => setText(e.target.value)}
             maxLength={2000}
             placeholder="Post to the log"
-            className="flex-1 rounded border border-stone-700 bg-stone-900 px-3 py-2"
+            className="flex-1 rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
           />
           <button
             type="submit"

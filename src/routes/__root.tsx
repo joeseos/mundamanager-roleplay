@@ -17,6 +17,9 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 
+/** Kept in step with the `body::before` rule in styles.css. */
+const BACKGROUND_URL = '/background_numv5r.avif'
+
 interface RouterContext {
   queryClient: QueryClient
 }
@@ -27,8 +30,25 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Necromunda Roleplay' },
+      { name: 'theme-color', content: '#000000' },
+      {
+        name: 'description',
+        content: 'A companion tool for Warhammer Necromunda Roleplay.',
+      },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      // The backdrop is a CSS background, so the browser only discovers it
+      // after the stylesheet parses. Preloading avoids a flash of flat black.
+      { rel: 'preload', as: 'image', href: BACKGROUND_URL, type: 'image/avif' },
+      { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+      { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/images/favicon-16x16.png' },
+      { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/images/favicon-32x32.png' },
+      { rel: 'icon', type: 'image/png', sizes: '96x96', href: '/images/favicon-96x96.png' },
+      { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/images/favicon-192x192.png' },
+      { rel: 'apple-touch-icon', sizes: '180x180', href: '/images/apple-touch-icon.png' },
+      { rel: 'manifest', href: '/site.webmanifest' },
+    ],
   }),
   loader: () => getBootstrap(),
   shellComponent: RootDocument,
@@ -42,7 +62,7 @@ function RootLayout() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-stone-800">
+      <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/70 backdrop-blur-sm">
         <nav className="mx-auto flex max-w-4xl items-center justify-between gap-4 p-4">
           <Link to="/" className="font-semibold tracking-tight">
             Necromunda Roleplay
@@ -52,10 +72,10 @@ function RootLayout() {
               <Link to="/tables" className="text-stone-300 hover:text-stone-100">
                 Tables
               </Link>
-              <span className="text-stone-400">{user.displayName}</span>
+              <span className="text-stone-300">{user.displayName}</span>
               <button
                 type="button"
-                className="rounded border border-stone-700 px-2 py-1 text-stone-300 hover:bg-stone-800"
+                className="rounded border border-stone-700 px-2 py-1 text-stone-300 hover:bg-stone-800/80"
                 onClick={async () => {
                   await signOut(supabase)
                   await router.navigate({ to: '/login' })
@@ -82,7 +102,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-stone-950 text-stone-100 antialiased">
+      <body className="text-stone-100 antialiased">
         {children}
         {/* Statically false in production, so the panels drop out of the bundle. */}
         {import.meta.env.DEV && (

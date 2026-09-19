@@ -61,7 +61,7 @@ function Login() {
   return (
     <main className="mx-auto max-w-sm p-8">
       <h1 className="text-2xl font-bold">Sign in</h1>
-      <p className="mt-1 text-sm text-stone-400">
+      <p className="mt-1 text-sm text-stone-300">
         Uses your existing MundaManager account.
       </p>
 
@@ -73,7 +73,7 @@ function Login() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded border border-stone-700 bg-stone-900 px-3 py-2"
+          className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
         />
         <input
           type="password"
@@ -82,7 +82,7 @@ function Login() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded border border-stone-700 bg-stone-900 px-3 py-2"
+          className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
         />
         <button
           type="submit"
@@ -96,7 +96,7 @@ function Login() {
       <button
         type="button"
         onClick={signInWithGoogle}
-        className="mt-3 w-full rounded border border-stone-700 px-3 py-2 text-sm hover:bg-stone-900"
+        className="mt-3 w-full rounded border border-stone-700 px-3 py-2 text-sm hover:bg-stone-900/80"
       >
         Continue with Google
       </button>

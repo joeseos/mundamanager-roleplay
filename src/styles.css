@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 
 * {
@@ -11,7 +10,36 @@ body,
   min-height: 100%;
 }
 
+/*
+ * The fallback colour lives on html, not body. An opaque background on body
+ * would paint over the `z-index: -1` pseudo-element below and hide the
+ * backdrop entirely.
+ */
+html {
+  background-color: #0c0a09;
+}
+
 body {
   margin: 0;
 }
 
+/*
+ * The underhive backdrop.
+ *
+ * A fixed pseudo-element rather than `background-attachment: fixed` on body:
+ * that property is unreliable on iOS Safari, which recalculates it on every
+ * scroll and judders. This pins one layer behind everything instead.
+ *
+ * No scrim: the plate texture is shown as-is. Readability comes from the
+ * panel fills on the content itself rather than from dimming the backdrop.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url("/background_numv5r.avif");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
