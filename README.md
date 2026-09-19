@@ -1,197 +1,183 @@
-Welcome to your new TanStack Start app!
+# Necromunda Roleplay companion
 
-# Getting Started
+A companion tool for Warhammer Necromunda Roleplay: players run Venators, an
+Arbitrator runs the story.
 
-To run this application:
+**The game's rules are not published, so nothing here encodes game rules.** The
+character sheet is an opaque `jsonb` blob with a single free-text placeholder
+field. There is no dice logic, no equipment or skill catalogue, and no rules
+engine. When the rules land, the sheet is where they go, and that needs no
+migration.
 
-```bash
+## Stack
+
+TanStack Start · Postgres + Drizzle · SSE for realtime · Docker → Coolify.
+Supabase is used **only** as an identity provider.
+
+## Local development
+
+```sh
+docker run -d --name nrp-postgres \
+  -e POSTGRES_USER=dev -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=nrp \
+  -p 5433:5432 postgres:17-alpine
+
+cp .env.example .env.local     # then fill in the Supabase values
 npm install
-npm run dev
+npm run db:migrate
+npm run dev                    # http://localhost:3000
 ```
 
-# Building For Production
-
-To build this application for production:
-
-```bash
-npm run build
+```sh
+npm run typecheck
+npm test                       # needs DATABASE_URL; see below
+npm run db:generate            # after changing src/db/schema.ts
 ```
 
-## Styling
+Tests run against a real Postgres rather than mocks, because the authorization
+rule and the event-log transaction are the two things most worth getting right.
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+## Auth
 
-### Removing Tailwind CSS
+This app reuses the accounts in the MundaManager Supabase project and shares
+nothing else with it. No Supabase client runs on the server, no Supabase table
+is read, and no RLS policy is involved.
 
-If you prefer not to use Tailwind CSS:
+```
+browser                                  server
+-------                                  ------
+supabase.auth.signIn...
+  └─ onAuthStateChange
+     (SIGNED_IN | TOKEN_REFRESHED)
+       └─ syncSession({ accessToken }) → verify with jose against the
+                                          project's remote JWKS
+                                          + iss + aud + ES256/RS256 only
+                                        → upsert local users row
+                                        → Set-Cookie (HttpOnly, Secure,
+                                          SameSite=Lax, Max-Age = token exp)
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Remove `@tailwindcss/vite` and `tailwindcss` from `package.json`
-
-
-## Deploy with Nitro
-
-This project uses Nitro as a generic server adapter, so it can run on any Node-compatible host.
-
-```bash
-npm run build
-node dist/server/index.mjs
+every request                          → one global request middleware
+  server fns AND the SSE stream          reads that cookie → context.user
 ```
 
-The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
+Four things worth knowing:
 
-For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
+- **The cookie exists because of SSE.** `EventSource` cannot set an
+  `Authorization` header, so the token is mirrored into an HttpOnly cookie and
+  the cookie becomes the single transport the server reads. One verification
+  path for everything.
+- **Verification is local.** `createRemoteJWKSet` caches the project's public
+  keys in memory and refetches only on an unknown `kid`, so a request costs one
+  signature check and one indexed lookup — no Supabase call. Nothing here ever
+  calls `supabase.auth.getUser()` on the request path.
+- **The sync runs on sign-in and token refresh only**, not per page load and
+  not per action. A page load with a valid cookie costs nothing extra.
+- **Tokens carry the other app's custom claims. All of them are discarded.**
+  `readIdentity()` names the five fields this app accepts and never spreads the
+  payload, so claims cannot leak in by construction. Every role here
+  (arbitrator, player, admin) lives in this database.
 
+Consequence, accepted deliberately: because verification is local, a session
+revoked in MundaManager stays valid here until the access token expires. That
+project's expiry is **one hour**. Signing out of *this* app clears its cookie
+and takes effect immediately. If a real kill switch is ever needed, the lever
+is a flag on the local `users` row checked in the same middleware — effective
+on the next request, and no round trip per request.
 
+## Realtime
 
-## Routing
+In-process fan-out, no broker: one `Map<sessionId, Set<listener>>`, sized for
+3–6 people per table and an event every 20–30 seconds. Single instance by
+design.
 
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
+A mutation writes its derived state and its `session_events` row in one
+transaction and emits **after** that transaction commits, never inside it — a
+rollback must not leave clients showing state that never existed. Sequence
+numbers come from a counter on the session row, so the row lock serialises
+concurrent appends.
 
-### Adding A Route
+The log is for history, replay and transport. Derived state lives in normal
+tables. This is not event sourcing.
 
-To add a new route to your application just add a new file in the `./src/routes` directory.
+Reconnection is the interesting part, because **neither side reliably notices
+the other going away**:
 
-TanStack will automatically generate the content of the route file for you.
+- A page moved into Chrome's back-forward cache keeps its socket open, so the
+  server sees no abort and no cancel, and its heartbeat keeps succeeding into a
+  socket nobody reads. Handled with a `pagehide` handler, plus a hard cap on
+  stream lifetime so an undetected leak is bounded by a timer rather than by
+  correctly detecting every disconnect path.
+- With the server killed, Chrome left `EventSource.readyState` at `OPEN` and
+  never fired `error`. The client therefore runs a silence watchdog, and the
+  heartbeat is a real `ping` event rather than a `: ping` comment, because
+  EventSource never surfaces comment frames to JavaScript.
 
-Now that you have two routes you can use a `Link` component to navigate between them.
+Every reconnect replays from the last `seq` the client saw, so a deploy — which
+restarts the container and drops every open stream — is a non-event.
 
-### Adding Links
+## Deployment
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+Push to `main` → typecheck → tests → `docker buildx` → push to
+`ghcr.io/joeseos/mundamanager-roleplay` tagged with both the commit SHA and
+`latest` → Coolify's deploy webhook. Steps run in order, so nothing is
+published or deployed unless everything before it passed.
 
-```tsx
-import { Link } from "@tanstack/react-router";
+Repository secrets:
+
+| Secret | What it is |
+|---|---|
+| `COOLIFY_WEBHOOK_URL` | Coolify's deploy webhook. The host is never hardcoded. |
+| `COOLIFY_TOKEN` | Sent as `Authorization: Bearer …`. |
+
+Runtime environment variables (set in Coolify, not baked into the image):
+
+| Variable | Notes |
+|---|---|
+| `DATABASE_URL` | The Coolify-managed Postgres, by **internal hostname**. No public port. |
+| `VITE_SUPABASE_URL` | `https://<project>.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | The project's legacy anon key is disabled, so this is the modern publishable key. |
+
+Both Supabase values are public, and both are served to the browser by the root
+loader **at runtime** rather than compiled into the client bundle. That is why
+the Docker build takes no build args: one published image runs in any
+environment, which is what makes an image-based Coolify resource work properly.
+
+Coolify setup, done once by hand:
+
+- The resource is **image-based**, pulling the published tag. It must not
+  rebuild from source.
+- Healthcheck → `GET /api/health`. It returns 200 once the database answers;
+  migrations run in a separate process before the server listens, so a server
+  that can answer has already migrated.
+- The GHCR package must be public, or Coolify needs a PAT with `read:packages`.
+
+Migrations run at container start via the programmatic Drizzle migrator, not
+the `drizzle-kit` CLI, so the runtime image carries no build tooling — it holds
+only `.output` and `drizzle`, and no `node_modules` at all. It reads the same
+`drizzle/` folder and writes the same `__drizzle_migrations` journal, so
+`npm run db:migrate` locally and the container are interchangeable. Single
+instance, so no migration locking.
+
+## Layout
+
+```
+src/
+  auth/          jose verification, cookie, local user upsert
+  server/
+    middleware.ts  the one place a request is authenticated
+    authz.ts       the one place an access decision is made
+    events.ts      the fan-out map
+    appendEvent.ts the transaction + emit-after-commit boundary
+    fn/            server functions — and ONLY server functions (see below)
+  client/        supabase client, auth sync, the SSE hook
+  routes/        pages, plus api/ for health and the SSE stream
 ```
 
-Then anywhere in your JSX you can use it like so:
+Two rules worth not rediscovering the hard way:
 
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+- **A module under `src/server/fn/` must export only server functions.** Start
+  strips server-function implementations from the client bundle, but any other
+  export drags the whole module — and its `pg` import — into the browser, where
+  it dies on `Buffer is not defined` and the page silently never hydrates.
+  Shared server helpers go in `src/server/`.
+- **`src/start.ts` opts out of automatic CSRF protection.** Defining that file
+  at all disables it, so `createCsrfMiddleware()` is installed explicitly there.

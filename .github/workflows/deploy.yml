@@ -1,0 +1,83 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+# A newer push supersedes an in-flight deploy of the same branch.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    # The authorization and event-log tests run against real Postgres rather
+    # than mocks, because those are the correctness-critical paths.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/test
+
+    # Steps run in order and the job stops at the first failure, so nothing is
+    # published or deployed unless everything before it passed.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - name: Apply migrations to the test database
+        run: npm run db:migrate
+
+      - run: npm test
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/joeseos/mundamanager-roleplay:${{ github.sha }}
+            ghcr.io/joeseos/mundamanager-roleplay:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Coolify pulls the tag that was just pushed; it does not build from
+      # source. Both the host and the token come from secrets.
+      - name: Trigger Coolify deploy
+        run: |
+          curl --fail --silent --show-error \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            "${{ secrets.COOLIFY_WEBHOOK_URL }}"
