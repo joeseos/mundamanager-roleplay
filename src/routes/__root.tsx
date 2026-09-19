@@ -62,7 +62,7 @@ function RootLayout() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/70 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950 shadow-md">
         <nav className="flex h-14 items-center justify-between gap-4 px-2">
           <Link to="/" className="flex items-center">
             {/* Decorative: the wordmark beside it carries the name. */}
@@ -78,7 +78,7 @@ function RootLayout() {
             </span>
           </Link>
           {user ? (
-            <div className="flex items-center gap-3 text-sm">
+            <div className="mr-2 flex items-center gap-3 text-sm">
               <Link to="/tables" className="text-stone-300 hover:text-stone-100">
                 Tables
               </Link>
@@ -95,7 +95,7 @@ function RootLayout() {
               </button>
             </div>
           ) : (
-            <Link to="/login" className="text-sm text-stone-300 hover:text-stone-100">
+            <Link to="/login" className="mr-2 text-sm text-stone-300 hover:text-stone-100">
               Sign in
             </Link>
           )}
