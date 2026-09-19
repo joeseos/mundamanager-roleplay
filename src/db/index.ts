@@ -17,7 +17,14 @@ function requireDatabaseUrl(): string {
  * One pool for the process. Single instance by design -- no multi-instance
  * support, so there is no connection-count coordination to worry about.
  */
-export const pool = new Pool({ connectionString: requireDatabaseUrl(), max: 10 })
+export const pool = new Pool({
+  connectionString: requireDatabaseUrl(),
+  max: 10,
+  // Without this, pg waits indefinitely. A database that resolves but never
+  // answers -- wrong network, firewall -- would hang the container at startup
+  // with no output at all rather than failing.
+  connectionTimeoutMillis: 10_000,
+})
 
 export const db = drizzle(pool, { schema })
 
