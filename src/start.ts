@@ -1,5 +1,7 @@
 import { createCsrfMiddleware, createStart } from '@tanstack/react-start'
 
+import { authMiddleware } from '#/server/middleware.ts'
+
 /**
  * Defining this file opts out of Start's automatic CSRF protection, so we have
  * to install it ourselves. See the note in the middleware guide:
@@ -15,5 +17,5 @@ const csrfMiddleware = createCsrfMiddleware({
 })
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [csrfMiddleware],
+  requestMiddleware: [csrfMiddleware, authMiddleware],
 }))
