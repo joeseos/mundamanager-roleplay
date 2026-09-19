@@ -5,6 +5,7 @@ import {
   Scripts,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
@@ -58,6 +59,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootLayout() {
   const { supabase, user } = Route.useLoaderData()
   const router = useRouter()
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
   useAuthSync(supabase, user?.id ?? null)
 
   return (
@@ -94,7 +96,9 @@ function RootLayout() {
                 Sign out
               </button>
             </div>
-          ) : (
+          ) : pathname === '/login' ? null : (
+            // The login page already has the form; a link to the page you are
+            // on is just noise.
             <Link to="/login" className="mr-2 text-sm text-stone-300 hover:text-stone-100">
               Sign in
             </Link>
