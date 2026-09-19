@@ -5,12 +5,17 @@ import type { JWTPayload, JWTVerifyGetKey } from 'jose'
  * Everything this app is willing to believe from a Supabase access token.
  *
  * The token is issued by another app's Supabase project (MundaManager) and
- * carries that app's custom claims, which describe *its* authorization model.
- * None of them mean anything here, so this type is the whole contract: the
+ * carries that app's custom claims. This type is the whole contract: the
  * payload is never spread, and no caller ever sees the raw claims.
  *
+ * Exactly one custom claim is read -- `user_profile.username` -- and only as a
+ * display string to seed a new local account. Everything else in that claim
+ * describes the other app's authorization and entitlement model
+ * (`user_role`, `patreon_tier_id`, `patreon_tier_title`, `patron_status`) and
+ * is deliberately dropped.
+ *
  * Every role in this app (arbitrator, player, admin) comes from this app's own
- * database.
+ * database, never from the token.
  */
 export interface VerifiedIdentity {
   supabaseUserId: string
@@ -89,18 +94,31 @@ export function readIdentity(payload: JWTPayload): VerifiedIdentity {
     throw new TokenVerificationError('token has no exp claim')
   }
 
-  // `user_metadata` is Supabase's own identity bag (populated by the OAuth
-  // provider), not one of the other app's authorization claims. Only these
-  // four fields are read, and only to seed a new local user row.
+  // `user_metadata` is Supabase's own identity bag, populated by the auth
+  // provider rather than by the other app.
   const metadata =
     payload.user_metadata && typeof payload.user_metadata === 'object'
       ? (payload.user_metadata as Record<string, unknown>)
       : {}
 
+  // `user_profile` is injected by MundaManager's custom access token hook.
+  // Only `username` is read from it, and only as a display string: it is the
+  // name the player already goes by, and accounts here are created with
+  // email/password, so nothing else in the token carries a name at all.
+  //
+  // The rest of that claim -- user_role, patreon_tier_id, patreon_tier_title,
+  // patron_status -- is the other app's authorization and entitlement model.
+  // Reading it here would let that app decide what someone can do in this one,
+  // so it is never touched.
+  const profile =
+    payload.user_profile && typeof payload.user_profile === 'object'
+      ? (payload.user_profile as Record<string, unknown>)
+      : {}
+
   return {
     supabaseUserId,
     email,
-    displayName: firstString(metadata.full_name, metadata.name),
+    displayName: firstString(profile.username, metadata.full_name, metadata.name),
     avatarUrl: firstString(metadata.avatar_url, metadata.picture),
     expiresAt: payload.exp,
   }

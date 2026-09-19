@@ -100,20 +100,61 @@ describe('verifyAccessToken', () => {
     expect(identity.avatarUrl).toBe('https://example.com/kal.png')
   })
 
+  it('seeds the display name from the MundaManager username claim', async () => {
+    const identity = await verifyWith(
+      await sign({
+        claims: {
+          user_profile: { user_role: 'user', username: 'joesoes' },
+        },
+      }),
+      keySource,
+      ISSUER,
+    )
+
+    expect(identity.displayName).toBe('joesoes')
+  })
+
+  it('prefers the username claim over provider metadata', async () => {
+    const identity = await verifyWith(
+      await sign({
+        claims: {
+          user_profile: { username: 'joesoes' },
+          user_metadata: { full_name: 'Someone Else' },
+        },
+      }),
+      keySource,
+      ISSUER,
+    )
+
+    // The username is what the player actually goes by in the other app.
+    expect(identity.displayName).toBe('joesoes')
+  })
+
+  it('survives a token with no user_profile claim at all', async () => {
+    // The hook returns the event unchanged when there is no profile row.
+    const identity = await verifyWith(await sign(), keySource, ISSUER)
+
+    expect(identity.displayName).toBeNull()
+    expect(identity.supabaseUserId).toBe('supabase-sub-123')
+  })
+
   /**
-   * The point of the whole module: the token comes from another app and
-   * carries that app's authorization model. None of it may reach this app.
+   * The point of the whole module. `username` is read as a display string;
+   * everything else in that claim is the other app's authorization and
+   * entitlement model and must not cross over.
    */
-  it('discards every custom claim from the issuing app', async () => {
+  it('discards the authorization and entitlement claims', async () => {
     const identity = await verifyWith(
       await sign({
         claims: {
           role: 'service_role',
-          app_role: 'admin',
-          is_admin: true,
-          user_roles: ['owner', 'superuser'],
-          gang_permissions: { canEdit: true },
-          subscription_tier: 'patron',
+          user_profile: {
+            username: 'joesoes',
+            user_role: 'admin',
+            patreon_tier_id: 'tier_9',
+            patreon_tier_title: 'Champion of the Underhive',
+            patron_status: 'active_patron',
+          },
         },
       }),
       keySource,
@@ -127,7 +168,16 @@ describe('verifyAccessToken', () => {
       'expiresAt',
       'supabaseUserId',
     ])
-    expect(JSON.stringify(identity)).not.toContain('service_role')
-    expect(JSON.stringify(identity)).not.toContain('superuser')
+
+    const serialised = JSON.stringify(identity)
+    for (const leaked of [
+      'service_role',
+      'admin',
+      'tier_9',
+      'Champion of the Underhive',
+      'active_patron',
+    ]) {
+      expect(serialised).not.toContain(leaked)
+    }
   })
 })

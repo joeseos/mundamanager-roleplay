@@ -76,9 +76,15 @@ Four things worth knowing:
   calls `supabase.auth.getUser()` on the request path.
 - **The sync runs on sign-in and token refresh only**, not per page load and
   not per action. A page load with a valid cookie costs nothing extra.
-- **Tokens carry the other app's custom claims. All of them are discarded.**
+- **Exactly one of the other app's custom claims is read.** MundaManager's
+  access token hook injects a `user_profile` claim. `user_profile.username` is
+  taken as a display string to seed a new local account — accounts there are
+  email/password, so nothing else in the token carries a name. The rest of that
+  claim (`user_role`, `patreon_tier_id`, `patreon_tier_title`,
+  `patron_status`) is that app's authorization and entitlement model and is
+  dropped: reading it would let MundaManager decide what someone can do here.
   `readIdentity()` names the five fields this app accepts and never spreads the
-  payload, so claims cannot leak in by construction. Every role here
+  payload, so nothing else can leak in by construction. Every role here
   (arbitrator, player, admin) lives in this database.
 
 Consequence, accepted deliberately: because verification is local, a session
