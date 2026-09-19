@@ -52,7 +52,7 @@ function Login() {
     <main className="mx-auto max-w-sm p-8">
       <h1 className="text-2xl font-bold">Sign in</h1>
       <p className="mt-1 text-sm text-stone-300">
-        Uses your existing Munda Manager Roleplay account.
+        Use your existing Munda Manager account.
       </p>
 
       <form onSubmit={signInWithPassword} className="mt-6 space-y-3">
