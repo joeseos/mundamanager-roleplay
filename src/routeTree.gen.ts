@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as SessionsSessionIdRouteImport } from './routes/sessions/$sessionId'
 import { Route as TablesIndexRouteImport } from './routes/tables/index'
 import { Route as TablesTableIdRouteImport } from './routes/tables/$tableId'
+import { Route as ApiDebugStreamsRouteImport } from './routes/api/debug.streams'
+import { Route as ApiSessionsSessionIdEventsRouteImport } from './routes/api/sessions.$sessionId.events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +33,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionsSessionIdRoute = SessionsSessionIdRouteImport.update({
+  id: '/sessions/$sessionId',
+  path: '/sessions/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TablesIndexRoute = TablesIndexRouteImport.update({
   id: '/tables/',
   path: '/tables/',
@@ -40,49 +48,91 @@ const TablesTableIdRoute = TablesTableIdRouteImport.update({
   path: '/tables/$tableId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDebugStreamsRoute = ApiDebugStreamsRouteImport.update({
+  id: '/api/debug/streams',
+  path: '/api/debug/streams',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSessionsSessionIdEventsRoute =
+  ApiSessionsSessionIdEventsRouteImport.update({
+    id: '/api/sessions/$sessionId/events',
+    path: '/api/sessions/$sessionId/events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/tables/$tableId': typeof TablesTableIdRoute
   '/tables/': typeof TablesIndexRoute
+  '/api/debug/streams': typeof ApiDebugStreamsRoute
+  '/api/sessions/$sessionId/events': typeof ApiSessionsSessionIdEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/tables/$tableId': typeof TablesTableIdRoute
   '/tables': typeof TablesIndexRoute
+  '/api/debug/streams': typeof ApiDebugStreamsRoute
+  '/api/sessions/$sessionId/events': typeof ApiSessionsSessionIdEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/tables/$tableId': typeof TablesTableIdRoute
   '/tables/': typeof TablesIndexRoute
+  '/api/debug/streams': typeof ApiDebugStreamsRoute
+  '/api/sessions/$sessionId/events': typeof ApiSessionsSessionIdEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/health' | '/tables/$tableId' | '/tables/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/api/health'
+    | '/sessions/$sessionId'
+    | '/tables/$tableId'
+    | '/tables/'
+    | '/api/debug/streams'
+    | '/api/sessions/$sessionId/events'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/health' | '/tables/$tableId' | '/tables'
+  to:
+    | '/'
+    | '/login'
+    | '/api/health'
+    | '/sessions/$sessionId'
+    | '/tables/$tableId'
+    | '/tables'
+    | '/api/debug/streams'
+    | '/api/sessions/$sessionId/events'
   id:
     | '__root__'
     | '/'
     | '/login'
     | '/api/health'
+    | '/sessions/$sessionId'
     | '/tables/$tableId'
     | '/tables/'
+    | '/api/debug/streams'
+    | '/api/sessions/$sessionId/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  SessionsSessionIdRoute: typeof SessionsSessionIdRoute
   TablesTableIdRoute: typeof TablesTableIdRoute
   TablesIndexRoute: typeof TablesIndexRoute
+  ApiDebugStreamsRoute: typeof ApiDebugStreamsRoute
+  ApiSessionsSessionIdEventsRoute: typeof ApiSessionsSessionIdEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -108,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sessions/$sessionId': {
+      id: '/sessions/$sessionId'
+      path: '/sessions/$sessionId'
+      fullPath: '/sessions/$sessionId'
+      preLoaderRoute: typeof SessionsSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tables/': {
       id: '/tables/'
       path: '/tables'
@@ -122,6 +179,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TablesTableIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/debug/streams': {
+      id: '/api/debug/streams'
+      path: '/api/debug/streams'
+      fullPath: '/api/debug/streams'
+      preLoaderRoute: typeof ApiDebugStreamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sessions/$sessionId/events': {
+      id: '/api/sessions/$sessionId/events'
+      path: '/api/sessions/$sessionId/events'
+      fullPath: '/api/sessions/$sessionId/events'
+      preLoaderRoute: typeof ApiSessionsSessionIdEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -129,8 +200,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,
+  SessionsSessionIdRoute: SessionsSessionIdRoute,
   TablesTableIdRoute: TablesTableIdRoute,
   TablesIndexRoute: TablesIndexRoute,
+  ApiDebugStreamsRoute: ApiDebugStreamsRoute,
+  ApiSessionsSessionIdEventsRoute: ApiSessionsSessionIdEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

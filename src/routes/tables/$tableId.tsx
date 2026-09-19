@@ -1,8 +1,9 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { useBootstrap } from '#/client/bootstrap.ts'
 import { createCharacter, updateCharacter } from '#/server/fn/characters.ts'
+import { startSession } from '#/server/fn/sessions.ts'
 import { getTableDetail } from '#/server/fn/tables.ts'
 
 export const Route = createFileRoute('/tables/$tableId')({
@@ -11,15 +12,28 @@ export const Route = createFileRoute('/tables/$tableId')({
 })
 
 function TableDetail() {
-  const { table, role, members, characters } = Route.useLoaderData()
+  const { table, role, members, characters, sessions } = Route.useLoaderData()
   const router = useRouter()
   const [newCharacter, setNewCharacter] = useState('')
+  const [sessionTitle, setSessionTitle] = useState('')
 
   async function onCreateCharacter(event: React.FormEvent) {
     event.preventDefault()
     await createCharacter({ data: { tableId: table.id, name: newCharacter } })
     setNewCharacter('')
     await router.invalidate()
+  }
+
+  async function onStartSession(event: React.FormEvent) {
+    event.preventDefault()
+    const session = await startSession({
+      data: { tableId: table.id, title: sessionTitle },
+    })
+    setSessionTitle('')
+    await router.navigate({
+      to: '/sessions/$sessionId',
+      params: { sessionId: session.id },
+    })
   }
 
   return (
@@ -102,6 +116,47 @@ function TableDetail() {
             Create
           </button>
         </form>
+      </section>
+
+      <section>
+        <h2 className="font-semibold">Sessions</h2>
+        {sessions.length === 0 ? (
+          <p className="mt-2 text-sm text-stone-400">No sessions yet.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <Link
+                  to="/sessions/$sessionId"
+                  params={{ sessionId: session.id }}
+                  className="flex items-center justify-between rounded border border-stone-800 p-3 hover:bg-stone-900"
+                >
+                  <span>{session.title}</span>
+                  <span className="text-xs text-stone-400">{session.status}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {role === 'arbitrator' ? (
+          <form onSubmit={onStartSession} className="mt-4 flex gap-2">
+            <input
+              required
+              maxLength={120}
+              placeholder="Session title"
+              value={sessionTitle}
+              onChange={(e) => setSessionTitle(e.target.value)}
+              className="flex-1 rounded border border-stone-700 bg-stone-900 px-3 py-2"
+            />
+            <button
+              type="submit"
+              className="rounded bg-amber-600 px-3 py-2 font-medium text-stone-950"
+            >
+              Start session
+            </button>
+          </form>
+        ) : null}
       </section>
     </main>
   )
