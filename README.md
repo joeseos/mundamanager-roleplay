@@ -1,13 +1,6 @@
 # Munda Manager Roleplay
 
-A companion tool for Warhammer Necromunda Roleplay: players run Venators, an
-Arbitrator runs the story.
-
-**The game's rules are not published, so nothing here encodes game rules.** The
-character sheet is an opaque `jsonb` blob with a single free-text placeholder
-field. There is no dice logic, no equipment or skill catalogue, and no rules
-engine. When the rules land, the sheet is where they go, and that needs no
-migration.
+A companion tool for Necromunda Roleplay.
 
 ## Stack
 
@@ -43,7 +36,7 @@ configure and nothing to remember.
 
 ## Auth
 
-This app reuses the accounts in the MundaManager Supabase project and shares
+This app reuses the accounts in the Munda Manager Supabase project and shares
 nothing else with it. No Supabase client runs on the server, no Supabase table
 is read, and no RLS policy is involved.
 
@@ -76,19 +69,19 @@ Four things worth knowing:
   calls `supabase.auth.getUser()` on the request path.
 - **The sync runs on sign-in and token refresh only**, not per page load and
   not per action. A page load with a valid cookie costs nothing extra.
-- **Exactly one of the other app's custom claims is read.** MundaManager's
+- **Exactly one of the other app's custom claims is read.** Munda Manager's
   access token hook injects a `user_profile` claim. `user_profile.username` is
   taken as a display string to seed a new local account — accounts there are
   email/password, so nothing else in the token carries a name. The rest of that
   claim (`user_role`, `patreon_tier_id`, `patreon_tier_title`,
   `patron_status`) is that app's authorization and entitlement model and is
-  dropped: reading it would let MundaManager decide what someone can do here.
+  dropped: reading it would let Munda Manager decide what someone can do here.
   `readIdentity()` names the five fields this app accepts and never spreads the
   payload, so nothing else can leak in by construction. Every role here
   (arbitrator, player, admin) lives in this database.
 
 Consequence, accepted deliberately: because verification is local, a session
-revoked in MundaManager stays valid here until the access token expires. That
+revoked in Munda Manager stays valid here until the access token expires. That
 project's expiry is **one hour**. Signing out of *this* app clears its cookie
 and takes effect immediately. If a real kill switch is ever needed, the lever
 is a flag on the local `users` row checked in the same middleware — effective
