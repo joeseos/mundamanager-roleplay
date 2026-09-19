@@ -7,6 +7,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    setupFiles: ['src/test/setup.ts'],
+    // The database-backed tests truncate between cases, so they must not run
+    // against the same database concurrently.
+    fileParallelism: false,
   },
   resolve: {
     alias: { '#': new URL('./src/', import.meta.url).pathname },

@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as TablesIndexRouteImport } from './routes/tables/index'
+import { Route as TablesTableIdRouteImport } from './routes/tables/$tableId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +30,59 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TablesIndexRoute = TablesIndexRouteImport.update({
+  id: '/tables/',
+  path: '/tables/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TablesTableIdRoute = TablesTableIdRouteImport.update({
+  id: '/tables/$tableId',
+  path: '/tables/$tableId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/tables/$tableId': typeof TablesTableIdRoute
+  '/tables/': typeof TablesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/tables/$tableId': typeof TablesTableIdRoute
+  '/tables': typeof TablesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/api/health': typeof ApiHealthRoute
+  '/tables/$tableId': typeof TablesTableIdRoute
+  '/tables/': typeof TablesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/health'
+  fullPaths: '/' | '/login' | '/api/health' | '/tables/$tableId' | '/tables/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/health'
-  id: '__root__' | '/' | '/login' | '/api/health'
+  to: '/' | '/login' | '/api/health' | '/tables/$tableId' | '/tables'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/api/health'
+    | '/tables/$tableId'
+    | '/tables/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  TablesTableIdRoute: typeof TablesTableIdRoute
+  TablesIndexRoute: typeof TablesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +108,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tables/': {
+      id: '/tables/'
+      path: '/tables'
+      fullPath: '/tables/'
+      preLoaderRoute: typeof TablesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tables/$tableId': {
+      id: '/tables/$tableId'
+      path: '/tables/$tableId'
+      fullPath: '/tables/$tableId'
+      preLoaderRoute: typeof TablesTableIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +129,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,
+  TablesTableIdRoute: TablesTableIdRoute,
+  TablesIndexRoute: TablesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -17,6 +17,22 @@ const createdAt = () =>
   timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 
 /**
+ * Anything that survives a round trip through JSON.
+ *
+ * The jsonb columns below hold shapes this app deliberately does not model
+ * (the game's rules are not published). `JsonValue` says the only thing that
+ * is actually true about them and stays serializable across the server
+ * boundary, which `unknown` does not.
+ */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<JsonValue>
+  | { [key: string]: JsonValue }
+
+/**
  * A local account, keyed on the Supabase `sub`. `displayName` and `avatarUrl`
  * are seeded from the token on first login and owned locally thereafter, so a
  * change in the other app never overwrites what the player set here.
@@ -50,11 +66,11 @@ export const tables = pgTable('tables', {
   joinCode: text('join_code').notNull().unique(),
   partyCredits: integer('party_credits').notNull().default(0),
   partyLoot: jsonb('party_loot')
-    .$type<Array<unknown>>()
+    .$type<Array<JsonValue>>()
     .notNull()
     .default(sql`'[]'::jsonb`),
   partyContacts: jsonb('party_contacts')
-    .$type<Array<unknown>>()
+    .$type<Array<JsonValue>>()
     .notNull()
     .default(sql`'[]'::jsonb`),
   createdAt: createdAt(),
@@ -100,7 +116,7 @@ export const characters = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     sheet: jsonb('sheet')
-      .$type<Record<string, unknown>>()
+      .$type<Record<string, JsonValue>>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     createdAt: createdAt(),
@@ -156,7 +172,7 @@ export const sessionEvents = pgTable(
     seq: integer('seq').notNull(),
     type: text('type').notNull(),
     payload: jsonb('payload')
-      .$type<Record<string, unknown>>()
+      .$type<Record<string, JsonValue>>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     actorUserId: uuid('actor_user_id').references(() => users.id, {

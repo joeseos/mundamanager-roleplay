@@ -38,7 +38,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootLayout() {
   const { supabase, user } = Route.useLoaderData()
   const router = useRouter()
-  useAuthSync(supabase)
+  useAuthSync(supabase, user?.id ?? null)
 
   return (
     <div className="min-h-screen">
@@ -49,6 +49,9 @@ function RootLayout() {
           </Link>
           {user ? (
             <div className="flex items-center gap-3 text-sm">
+              <Link to="/tables" className="text-stone-300 hover:text-stone-100">
+                Tables
+              </Link>
               <span className="text-stone-400">{user.displayName}</span>
               <button
                 type="button"

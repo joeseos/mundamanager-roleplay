@@ -1,3 +1,4 @@
+import { redirect } from '@tanstack/react-router'
 import { createMiddleware } from '@tanstack/react-start'
 
 import { readAuthCookie } from '#/auth/cookie.ts'
@@ -49,9 +50,17 @@ export const authMiddleware = createMiddleware().server(
   async ({ next, request }) => next({ context: { user: await resolveUser(request) } }),
 )
 
+/**
+ * Throws a redirect rather than a 401 so that an expired cookie on a page load
+ * lands the caller on /login instead of an error boundary. Start carries a
+ * thrown redirect across the server-function boundary.
+ *
+ * The SSE route does not use this: EventSource cannot follow a redirect
+ * usefully, so it answers 401 directly and the client stops retrying.
+ */
 export function requireUser(context: { user: AppUser | null }): AppUser {
   if (!context.user) {
-    throw new HttpError(401, 'Not signed in')
+    throw redirect({ to: '/login' })
   }
   return context.user
 }
