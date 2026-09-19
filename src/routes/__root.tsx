@@ -29,7 +29,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Necromunda Roleplay' },
+      { title: 'Munda Manager Roleplay' },
       { name: 'theme-color', content: '#000000' },
       {
         name: 'description',
@@ -63,9 +63,19 @@ function RootLayout() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/70 backdrop-blur-sm">
-        <nav className="mx-auto flex max-w-4xl items-center justify-between gap-4 p-4">
-          <Link to="/" className="font-semibold tracking-tight">
-            Necromunda Roleplay
+        <nav className="mx-auto flex h-14 max-w-4xl items-center justify-between gap-4 px-2">
+          <Link to="/" className="flex items-center">
+            {/* Decorative: the wordmark beside it carries the name. */}
+            <img
+              src="/images/favicon-36x36-white.png"
+              alt=""
+              width={36}
+              height={36}
+              className="mr-2 ml-1"
+            />
+            <span className="text-lg font-bold transition-colors hover:text-amber-500">
+              Munda Manager Roleplay
+            </span>
           </Link>
           {user ? (
             <div className="flex items-center gap-3 text-sm">

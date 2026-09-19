@@ -1,4 +1,4 @@
-# Necromunda Roleplay companion
+# Munda Manager Roleplay
 
 A companion tool for Warhammer Necromunda Roleplay: players run Venators, an
 Arbitrator runs the story.

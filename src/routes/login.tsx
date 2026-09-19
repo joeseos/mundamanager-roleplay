@@ -7,8 +7,9 @@ import { useBootstrap } from '#/client/bootstrap.ts'
 export const Route = createFileRoute('/login')({ component: Login })
 
 /**
- * Which providers actually work here depends on what the MundaManager
- * Supabase project has enabled -- this app only borrows the accounts.
+ * Email and password only. Every identity on the MundaManager project is an
+ * email identity -- there is no OAuth provider configured -- so a social
+ * button here would be dead UI.
  */
 function Login() {
   const router = useRouter()
@@ -35,17 +36,6 @@ function Login() {
     // useAuthSync mirrors the token into the cookie and invalidates the
     // router, so by the time we navigate the server already knows us.
     await router.navigate({ to: '/' })
-  }
-
-  async function signInWithGoogle() {
-    setError(null)
-    const { error: oauthError } = await getSupabaseClient(
-      supabase,
-    ).auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` },
-    })
-    if (oauthError) setError(oauthError.message)
   }
 
   if (user) {
@@ -93,13 +83,6 @@ function Login() {
         </button>
       </form>
 
-      <button
-        type="button"
-        onClick={signInWithGoogle}
-        className="mt-3 w-full rounded border border-stone-700 px-3 py-2 text-sm hover:bg-stone-900/80"
-      >
-        Continue with Google
-      </button>
 
       {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
     </main>

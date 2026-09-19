@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/* Matches Munda Manager, which loads Inter through next/font. */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
 
 * {
   box-sizing: border-box;
@@ -21,6 +27,7 @@ html {
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
 }
 
 /*
