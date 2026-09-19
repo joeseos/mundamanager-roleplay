@@ -7,7 +7,7 @@ import { useBootstrap } from '#/client/bootstrap.ts'
 export const Route = createFileRoute('/login')({ component: Login })
 
 /**
- * Email and password only. Every identity on the MundaManager project is an
+ * Email and password only. Every identity on the Munda Manager project is an
  * email identity -- there is no OAuth provider configured -- so a social
  * button here would be dead UI.
  */
@@ -52,7 +52,7 @@ function Login() {
     <main className="mx-auto max-w-sm p-8">
       <h1 className="text-2xl font-bold">Sign in</h1>
       <p className="mt-1 text-sm text-stone-300">
-        Uses your existing MundaManager account.
+        Uses your existing Munda Manager Roleplay account.
       </p>
 
       <form onSubmit={signInWithPassword} className="mt-6 space-y-3">

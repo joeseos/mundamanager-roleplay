@@ -63,7 +63,7 @@ function RootLayout() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950/70 backdrop-blur-sm">
-        <nav className="mx-auto flex h-14 max-w-4xl items-center justify-between gap-4 px-2">
+        <nav className="flex h-14 items-center justify-between gap-4 px-2">
           <Link to="/" className="flex items-center">
             {/* Decorative: the wordmark beside it carries the name. */}
             <img
