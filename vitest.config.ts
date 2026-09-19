@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    globalSetup: ['src/test/globalSetup.ts'],
     setupFiles: ['src/test/setup.ts'],
     // The database-backed tests truncate between cases, so they must not run
     // against the same database concurrently.

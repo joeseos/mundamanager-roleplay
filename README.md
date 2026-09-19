@@ -29,12 +29,17 @@ npm run dev                    # http://localhost:3000
 
 ```sh
 npm run typecheck
-npm test                       # needs DATABASE_URL; see below
+npm test
 npm run db:generate            # after changing src/db/schema.ts
 ```
 
 Tests run against a real Postgres rather than mocks, because the authorization
 rule and the event-log transaction are the two things most worth getting right.
+
+They truncate between cases, so they never touch the database you develop
+against: `DATABASE_URL` is rewritten to a sibling `<name>_test` database, which
+is created and migrated automatically on first run. There is nothing to
+configure and nothing to remember.
 
 ## Auth
 

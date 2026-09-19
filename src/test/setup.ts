@@ -1,7 +1,5 @@
-import { existsSync } from 'node:fs'
+import { resolveTestDatabaseUrl } from './dbUrl.ts'
 
-// CI supplies DATABASE_URL from the Postgres service; locally it comes from
-// .env.local, which is not committed.
-if (existsSync('.env.local')) {
-  process.loadEnvFile('.env.local')
-}
+// Runs in every worker before any module reads DATABASE_URL, which
+// src/db/index.ts does at import time.
+process.env.DATABASE_URL = resolveTestDatabaseUrl().testUrl

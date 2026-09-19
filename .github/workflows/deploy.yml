@@ -50,9 +50,8 @@ jobs:
 
       - run: npm run typecheck
 
-      - name: Apply migrations to the test database
-        run: npm run db:migrate
-
+      # The test run creates its own <name>_test database and migrates it, so
+      # there is no separate migrate step here.
       - run: npm test
 
       - uses: docker/login-action@v3
