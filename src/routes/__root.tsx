@@ -13,6 +13,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { signOut, useAuthSync } from '#/client/auth.tsx'
 import { Button } from '#/components/button.tsx'
+import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import { getBootstrap } from '#/server/fn/session.ts'
 
 import appCss from '../styles.css?url'
@@ -53,6 +54,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
   }),
   loader: () => getBootstrap(),
+  // Secure-by-default: a route that forgets to set its own `headers` still
+  // ends up non-cacheable. `/` and `/login` are the only ones that opt out
+  // of this by setting their own (a leaf route's headers win over the
+  // root's, per @tanstack/router-core's header merge).
+  headers: privatePageHeaders,
   shellComponent: RootDocument,
   component: RootLayout,
 })

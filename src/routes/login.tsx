@@ -4,8 +4,12 @@ import { useState } from 'react'
 import { getSupabaseClient } from '#/client/supabase.ts'
 import { useBootstrap } from '#/client/bootstrap.ts'
 import { Button } from '#/components/button.tsx'
+import { publicPageHeaders } from '#/server/cacheHeaders.ts'
 
-export const Route = createFileRoute('/login')({ component: Login })
+export const Route = createFileRoute('/login')({
+  headers: publicPageHeaders,
+  component: Login,
+})
 
 /**
  * Email and password only. Every identity on the Munda Manager project is an

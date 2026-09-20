@@ -1,6 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({ component: Home })
+import { publicPageHeaders } from '#/server/cacheHeaders.ts'
+
+export const Route = createFileRoute('/')({
+  headers: publicPageHeaders,
+  component: Home,
+})
 
 function Home() {
   return (

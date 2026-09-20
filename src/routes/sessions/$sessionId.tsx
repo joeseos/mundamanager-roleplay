@@ -5,6 +5,7 @@ import { useBootstrap } from '#/client/bootstrap.ts'
 import { useSessionStream } from '#/client/useSessionStream.ts'
 import { Button } from '#/components/button.tsx'
 import type { StreamEvent } from '#/client/useSessionStream.ts'
+import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import {
   adjustPartyCredits,
   endSession,
@@ -14,6 +15,7 @@ import {
 
 export const Route = createFileRoute('/sessions/$sessionId')({
   loader: ({ params }) => getSessionDetail({ data: { sessionId: params.sessionId } }),
+  headers: privatePageHeaders,
   component: SessionPage,
 })
 

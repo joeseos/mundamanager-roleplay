@@ -3,12 +3,14 @@ import { useState } from 'react'
 
 import { useBootstrap } from '#/client/bootstrap.ts'
 import { Button } from '#/components/button.tsx'
+import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import { createCharacter, updateCharacter } from '#/server/fn/characters.ts'
 import { startSession } from '#/server/fn/sessions.ts'
 import { getTableDetail } from '#/server/fn/tables.ts'
 
 export const Route = createFileRoute('/tables/$tableId')({
   loader: ({ params }) => getTableDetail({ data: { tableId: params.tableId } }),
+  headers: privatePageHeaders,
   component: TableDetail,
 })
 

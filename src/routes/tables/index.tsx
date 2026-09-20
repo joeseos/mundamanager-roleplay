@@ -2,10 +2,12 @@ import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { Button } from '#/components/button.tsx'
+import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import { createTable, joinTable, listMyTables } from '#/server/fn/tables.ts'
 
 export const Route = createFileRoute('/tables/')({
   loader: () => listMyTables(),
+  headers: privatePageHeaders,
   component: TablesIndex,
 })
 
