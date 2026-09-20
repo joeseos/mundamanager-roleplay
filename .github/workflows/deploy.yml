@@ -76,7 +76,11 @@ jobs:
       # source. Both the host and the token come from secrets.
       - name: Trigger Coolify deploy
         run: |
-          curl --fail --silent --show-error \
+          # --fail-with-body, not --fail: Coolify returns 403 with the list of
+          # permissions the token is missing, and plain --fail discards the
+          # body, leaving only an unexplained exit code 22.
+          curl --fail-with-body --silent --show-error \
             -X GET \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            -w '\nHTTP %{http_code}\n' \
             "${{ secrets.COOLIFY_WEBHOOK_URL }}"
