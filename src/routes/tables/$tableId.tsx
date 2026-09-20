@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { useBootstrap } from '#/client/bootstrap.ts'
+import { Button } from '#/components/button.tsx'
 import { createCharacter, updateCharacter } from '#/server/fn/characters.ts'
 import { startSession } from '#/server/fn/sessions.ts'
 import { getTableDetail } from '#/server/fn/tables.ts'
@@ -109,12 +110,9 @@ function TableDetail() {
             onChange={(e) => setNewCharacter(e.target.value)}
             className="flex-1 rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
           />
-          <button
-            type="submit"
-            className="rounded bg-amber-600 px-3 py-2 font-medium text-stone-950"
-          >
+          <Button type="submit" className="px-3 py-2">
             Create
-          </button>
+          </Button>
         </form>
       </section>
 
@@ -149,12 +147,9 @@ function TableDetail() {
               onChange={(e) => setSessionTitle(e.target.value)}
               className="flex-1 rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
             />
-            <button
-              type="submit"
-              className="rounded bg-amber-600 px-3 py-2 font-medium text-stone-950"
-            >
+            <Button type="submit" className="px-3 py-2">
               Start session
-            </button>
+            </Button>
           </form>
         ) : null}
       </section>
@@ -199,14 +194,15 @@ function CharacterCard({ character }: { character: CharacterRow }) {
         className="mt-2 w-full rounded border border-stone-800 bg-stone-900/70 px-3 py-2 text-sm"
       />
       {canEdit ? (
-        <button
+        <Button
           type="button"
+          variant="secondary"
           onClick={onSave}
           disabled={saving}
-          className="mt-2 rounded border border-stone-700 px-3 py-1 text-sm hover:bg-stone-800 disabled:opacity-50"
+          className="mt-2 px-3 py-1 text-sm"
         >
           {saving ? 'Saving...' : 'Save sheet'}
-        </button>
+        </Button>
       ) : null}
     </li>
   )

@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import { getSupabaseClient } from '#/client/supabase.ts'
 import { useBootstrap } from '#/client/bootstrap.ts'
+import { Button } from '#/components/button.tsx'
 
 export const Route = createFileRoute('/login')({ component: Login })
 
@@ -74,13 +75,9 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
         />
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded bg-amber-600 px-3 py-2 font-medium text-stone-950 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={busy} className="w-full px-3 py-2">
           {busy ? 'Signing in...' : 'Sign in'}
-        </button>
+        </Button>
       </form>
 
 
