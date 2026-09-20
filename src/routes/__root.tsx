@@ -35,7 +35,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: 'theme-color', content: '#000000' },
       {
         name: 'description',
-        content: 'A companion tool for Warhammer Necromunda Roleplay.',
+        content: 'A companion tool for Necromunda Roleplay.',
       },
     ],
     links: [
