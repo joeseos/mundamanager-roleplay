@@ -12,6 +12,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { signOut, useAuthSync } from '#/client/auth.tsx'
+import { Button } from '#/components/button.tsx'
 import { getBootstrap } from '#/server/fn/session.ts'
 
 import appCss from '../styles.css?url'
@@ -85,16 +86,17 @@ function RootLayout() {
                 Tables
               </Link>
               <span className="text-stone-300">{user.displayName}</span>
-              <button
+              <Button
                 type="button"
-                className="rounded border border-stone-700 px-2 py-1 text-stone-300 hover:bg-stone-800/80"
+                variant="secondary"
+                className="px-2 py-1 text-stone-300"
                 onClick={async () => {
                   await signOut(supabase)
                   await router.navigate({ to: '/login' })
                 }}
               >
                 Sign out
-              </button>
+              </Button>
             </div>
           ) : pathname === '/login' ? null : (
             // The login page already has the form; a link to the page you are

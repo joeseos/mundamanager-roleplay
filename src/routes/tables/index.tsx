@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
+import { Button } from '#/components/button.tsx'
 import { createTable, joinTable, listMyTables } from '#/server/fn/tables.ts'
 
 export const Route = createFileRoute('/tables/')({
@@ -74,12 +75,9 @@ function TablesIndex() {
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
           />
-          <button
-            type="submit"
-            className="w-full rounded bg-amber-600 px-3 py-2 font-medium text-stone-950"
-          >
+          <Button type="submit" className="w-full px-3 py-2">
             Create as Arbitrator
-          </button>
+          </Button>
         </form>
 
         <form onSubmit={onJoin} className="space-y-2">
@@ -92,12 +90,9 @@ function TablesIndex() {
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2 font-mono tracking-widest"
           />
-          <button
-            type="submit"
-            className="w-full rounded border border-stone-700 px-3 py-2 hover:bg-stone-900/80"
-          >
+          <Button type="submit" variant="secondary" className="w-full px-3 py-2">
             Join as player
-          </button>
+          </Button>
         </form>
       </section>
 

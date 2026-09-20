@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import { useBootstrap } from '#/client/bootstrap.ts'
 import { useSessionStream } from '#/client/useSessionStream.ts'
+import { Button } from '#/components/button.tsx'
 import type { StreamEvent } from '#/client/useSessionStream.ts'
 import {
   adjustPartyCredits,
@@ -82,30 +83,33 @@ function SessionPage() {
 
       {role === 'arbitrator' && session.status !== 'ended' ? (
         <div className="flex gap-2 text-sm">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => onAdjustCredits(10)}
-            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900/80"
+            className="px-3 py-1"
           >
             +10 credits
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => onAdjustCredits(-10)}
-            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900/80"
+            className="px-3 py-1"
           >
             -10 credits
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             onClick={async () => {
               await endSession({ data: { sessionId: session.id } })
               await router.invalidate()
             }}
-            className="rounded border border-stone-700 px-3 py-1 hover:bg-stone-900/80"
+            className="px-3 py-1"
           >
             End session
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -150,12 +154,9 @@ function SessionPage() {
             placeholder="Post to the log"
             className="flex-1 rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
           />
-          <button
-            type="submit"
-            className="rounded bg-amber-600 px-4 py-2 font-medium text-stone-950"
-          >
+          <Button type="submit" className="px-4 py-2">
             Post
-          </button>
+          </Button>
         </form>
       )}
     </main>
