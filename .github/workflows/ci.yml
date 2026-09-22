@@ -48,6 +48,8 @@ jobs:
 
       - run: npm run typecheck
 
+      - run: npm run build
+
       # The test run creates its own <name>_test database and migrates it, so
       # there is no separate migrate step here.
       - run: npm test
