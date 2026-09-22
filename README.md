@@ -120,17 +120,12 @@ restarts the container and drops every open stream — is a non-event.
 
 ## Deployment
 
-Push to `main` → typecheck → tests → `docker buildx` → push to
-`ghcr.io/joeseos/mundamanager-roleplay` tagged with both the commit SHA and
-`latest` → Coolify's deploy webhook. Steps run in order, so nothing is
-published or deployed unless everything before it passed.
+Push to `main` → CI runs typecheck, build and tests → Coolify's GitHub App
+builds the image on the VPS and deploys it.
 
-Repository secrets:
-
-| Secret | What it is |
-|---|---|
-| `COOLIFY_WEBHOOK_URL` | Coolify's deploy webhook. The host is never hardcoded. |
-| `COOLIFY_TOKEN` | Sent as `Authorization: Bearer …`. |
+CI and the deploy are triggered by the same push and run independently, so a
+failing test does **not** stop a deploy. CI also runs on pull requests, which
+is where a break is meant to be caught.
 
 Runtime environment variables (set in Coolify, not baked into the image):
 
@@ -141,18 +136,18 @@ Runtime environment variables (set in Coolify, not baked into the image):
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | The project's legacy anon key is disabled, so this is the modern publishable key. |
 
 Both Supabase values are public, and both are served to the browser by the root
-loader **at runtime** rather than compiled into the client bundle. That is why
-the Docker build takes no build args: one published image runs in any
-environment, which is what makes an image-based Coolify resource work properly.
+loader **at runtime** rather than compiled into the client bundle, so one build
+runs in any environment.
 
 Coolify setup, done once by hand:
 
-- The resource is **image-based**, pulling the published tag. It must not
-  rebuild from source.
+- The resource is a **GitHub App source** on this repo's `main`, build pack
+  **Dockerfile**. The build pack is load-bearing: the Dockerfile's `CMD` runs
+  the migrator before the server listens, and Nixpacks would start the server
+  unmigrated while `/api/health` still answered 200.
 - Healthcheck → `GET /api/health`. It returns 200 once the database answers;
   migrations run in a separate process before the server listens, so a server
   that can answer has already migrated.
-- The GHCR package must be public, or Coolify needs a PAT with `read:packages`.
 
 Migrations run at container start via the programmatic Drizzle migrator, not
 the `drizzle-kit` CLI, so the runtime image carries no build tooling — it holds
@@ -160,6 +155,25 @@ only `.output` and `drizzle`, and no `node_modules` at all. It reads the same
 `drizzle/` folder and writes the same `__drizzle_migrations` journal, so
 `npm run db:migrate` locally and the container are interchangeable. Single
 instance, so no migration locking.
+
+### Cloudflare
+
+Cloudflare is a CDN in front of the origin; it does not run the app. Two rules
+are configured there rather than in this repo, and nothing in the code enforces
+them:
+
+- **Cache Rule on `/` and `/login`** — eligible for cache, bypassing when the
+  auth cookie is present. Cloudflare's cache key ignores `Cookie`, so without
+  the bypass one visitor's signed-in page could be served to everyone. The
+  origin says `private, no-store` on both `Cache-Control` and
+  `CDN-Cache-Control` for a signed-in render, but a Cache Rule with an Edge TTL
+  override ignores the former, which is why both are set.
+- **Rate limit on the join-table server function** — a join code is six
+  characters from a 32-character alphabet and nothing throttles guesses.
+
+Bot Fight Mode is enabled, which is why the deploy runs through the Coolify
+GitHub App rather than a webhook call from CI: it managed-challenges requests
+from GitHub Actions runners.
 
 ## Layout
 
