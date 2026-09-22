@@ -1,6 +1,7 @@
-import { createCsrfMiddleware, createStart } from '@tanstack/react-start'
+import { createCsrfMiddleware, createMiddleware, createStart } from '@tanstack/react-start'
+import { setResponseStatus } from '@tanstack/react-start/server'
 
-import { authMiddleware } from '#/server/middleware.ts'
+import { HttpError, authMiddleware } from '#/server/middleware.ts'
 
 /**
  * Defining this file opts out of Start's automatic CSRF protection, so we have
@@ -16,6 +17,23 @@ const csrfMiddleware = createCsrfMiddleware({
   filter: ({ handlerType }) => handlerType === 'serverFn',
 })
 
+/**
+ * Start captures a thrown error as a value rather than rethrowing it, so the
+ * response status is whatever the ambient response says -- 200 -- unless it is
+ * set here. Only a function middleware sees the throw.
+ */
+const serverFnStatusMiddleware = createMiddleware({ type: 'function' }).server(
+  async ({ next }) => {
+    try {
+      return await next()
+    } catch (error) {
+      if (error instanceof HttpError) setResponseStatus(error.status)
+      throw error
+    }
+  },
+)
+
 export const startInstance = createStart(() => ({
   requestMiddleware: [csrfMiddleware, authMiddleware],
+  functionMiddleware: [serverFnStatusMiddleware],
 }))
