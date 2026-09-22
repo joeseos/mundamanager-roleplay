@@ -1,4 +1,4 @@
-name: deploy
+name: ci
 
 on:
   push:
@@ -6,11 +6,11 @@ on:
 
 # A newer push supersedes an in-flight run of the same branch.
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  ci:
     runs-on: ubuntu-latest
     permissions:
       contents: read
