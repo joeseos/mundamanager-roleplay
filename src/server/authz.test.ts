@@ -10,6 +10,7 @@ import {
   visibleCharacters,
 } from './authz.ts'
 import { HttpError } from './middleware.ts'
+import { readActorNames } from './sessionLog.ts'
 
 beforeEach(resetDb)
 
@@ -138,5 +139,21 @@ describe('character editing', () => {
 
     expect(canSeeCharacter(access, kal)).toBe(false)
     expect(() => assertCanEditCharacter(access, kal)).toThrow(HttpError)
+  })
+})
+
+describe('actor names', () => {
+  it('resolves the names of that table members and nobody else', async () => {
+    const gm = await makeUser('Arbitrator')
+    const alice = await makeUser('Alice')
+    const outsider = await makeUser('Outsider')
+    const table = await makeTable(gm)
+    await addMember(table, alice)
+    // Belongs to a table of their own, so they must not appear here.
+    await makeTable(outsider)
+
+    const names = await readActorNames(table.id)
+
+    expect(Object.values(names).sort()).toEqual(['Alice', 'Arbitrator'])
   })
 })

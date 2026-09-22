@@ -3,11 +3,14 @@ import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { db } from '#/db/index.ts'
-import { sessions, tables, users } from '#/db/schema.ts'
+import { sessions, tables } from '#/db/schema.ts'
 import { appendSessionEvent } from '#/server/appendEvent.ts'
 import { requireArbitrator, requireSessionAccess } from '#/server/authz.ts'
 import { HttpError, requireUser } from '#/server/middleware.ts'
-import { readEventsSince } from '#/server/sessionLog.ts'
+import { readActorNames, readEventsSince } from '#/server/sessionLog.ts'
+
+/** Long enough to cover a whole sitting; the stream carries everything after it. */
+const SESSION_LOG_TAIL = 500
 
 export const startSession = createServerFn({ method: 'POST' })
   .validator(
@@ -67,18 +70,17 @@ export const getSessionDetail = createServerFn({ method: 'GET' })
       .where(eq(tables.id, access.tableId))
       .limit(1)
 
-    const events = await readEventsSince(data.sessionId, 0)
-
-    const actors = await db
-      .select({ id: users.id, displayName: users.displayName })
-      .from(users)
+    const [events, actorNames] = await Promise.all([
+      readEventsSince(data.sessionId, 0, SESSION_LOG_TAIL),
+      readActorNames(access.tableId),
+    ])
 
     return {
       session,
       table: table!,
       role: access.role,
       events,
-      actorNames: Object.fromEntries(actors.map((a) => [a.id, a.displayName])),
+      actorNames,
     }
   })
 
