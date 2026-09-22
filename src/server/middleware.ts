@@ -5,7 +5,7 @@ import { PRIVATE } from '#/server/cacheHeaders.ts'
 
 import { readAuthCookie } from '#/auth/cookie.ts'
 import { findUserBySupabaseId } from '#/auth/user.ts'
-import { verifyAccessToken } from '#/auth/verify.ts'
+import { TokenVerificationError, verifyAccessToken } from '#/auth/verify.ts'
 import type { User } from '#/db/schema.ts'
 
 export type AppUser = User
@@ -30,10 +30,12 @@ async function resolveUser(request: Request): Promise<AppUser | null> {
     // The local row is the authority on who this is inside this app. The
     // token only establishes *which* account is calling.
     return await findUserBySupabaseId(identity.supabaseUserId)
-  } catch {
+  } catch (error) {
     // An expired or malformed cookie is an anonymous request, not a crash.
-    // The client re-syncs after a 401.
-    return null
+    // The client re-syncs after a 401. Anything else is a real failure, and
+    // answering "signed out" to it would sign everyone out at once.
+    if (error instanceof TokenVerificationError) return null
+    throw error
   }
 }
 

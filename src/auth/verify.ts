@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify } from 'jose'
+import { createRemoteJWKSet, errors, jwtVerify } from 'jose'
 import type { JWTPayload, JWTVerifyGetKey } from 'jose'
 
 /**
@@ -147,6 +147,11 @@ export async function verifyWith(
     return readIdentity(payload)
   } catch (error) {
     if (error instanceof TokenVerificationError) throw error
+    // A JWKS that cannot be fetched says nothing about the token. Reporting it
+    // as a rejection would sign every user out for the length of the outage.
+    if (error instanceof errors.JWKSTimeout || !(error instanceof errors.JOSEError)) {
+      throw error
+    }
     throw new TokenVerificationError('access token rejected', { cause: error })
   }
 }

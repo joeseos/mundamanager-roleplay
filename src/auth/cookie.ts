@@ -7,11 +7,15 @@ import { deleteCookie, setCookie } from '@tanstack/react-start/server'
  * reads -- server functions and the SSE route alike -- so there is exactly one
  * place that decides who the caller is.
  */
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production'
+}
+
 export function authCookieName(): string {
   // The __Host- prefix requires Secure, which browsers do allow on
   // http://localhost. Dev uses an unprefixed name anyway so that running the
   // dev server over plain http on a LAN address still works.
-  return process.env.NODE_ENV === 'production' ? '__Host-nrp_token' : 'nrp_token'
+  return isProduction() ? '__Host-nrp_token' : 'nrp_token'
 }
 
 /**
@@ -39,7 +43,9 @@ export function writeAuthCookie(token: string, expiresAt: number): void {
   const maxAge = Math.max(0, expiresAt - Math.floor(Date.now() / 1000))
   setCookie(authCookieName(), token, {
     httpOnly: true,
-    secure: true,
+    // Browsers exempt localhost from the Secure-requires-HTTPS rule but not a
+    // LAN address, and dev runs over plain http.
+    secure: isProduction(),
     sameSite: 'lax',
     path: '/',
     maxAge,
@@ -49,7 +55,7 @@ export function writeAuthCookie(token: string, expiresAt: number): void {
 export function clearAuthCookie(): void {
   deleteCookie(authCookieName(), {
     httpOnly: true,
-    secure: true,
+    secure: isProduction(),
     sameSite: 'lax',
     path: '/',
   })

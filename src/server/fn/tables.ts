@@ -67,8 +67,7 @@ export const createTable = createServerFn({ method: 'POST' })
           return table!
         })
       } catch (error) {
-        if (isUniqueViolation(error) && attempt < 4) continue
-        throw error
+        if (!isUniqueViolation(error)) throw error
       }
     }
 
