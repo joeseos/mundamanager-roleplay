@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { sql } from 'drizzle-orm'
 
 import { db } from '#/db/index.ts'
+import { PRIVATE } from '#/server/cacheHeaders.ts'
 
 /**
  * Wired to Coolify's healthcheck.
@@ -16,10 +17,13 @@ export const Route = createFileRoute('/api/health')({
       GET: async () => {
         try {
           await db.execute(sql`select 1`)
-          return Response.json({ status: 'ok' })
+          return Response.json({ status: 'ok' }, { headers: PRIVATE })
         } catch (error) {
           console.error('healthcheck failed', error)
-          return Response.json({ status: 'database unavailable' }, { status: 503 })
+          return Response.json(
+            { status: 'database unavailable' },
+            { status: 503, headers: PRIVATE },
+          )
         }
       },
     },

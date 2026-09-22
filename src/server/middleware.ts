@@ -1,6 +1,8 @@
 import { redirect } from '@tanstack/react-router'
 import { createMiddleware } from '@tanstack/react-start'
 
+import { PRIVATE } from '#/server/cacheHeaders.ts'
+
 import { readAuthCookie } from '#/auth/cookie.ts'
 import { findUserBySupabaseId } from '#/auth/user.ts'
 import { verifyAccessToken } from '#/auth/verify.ts'
@@ -60,7 +62,7 @@ export const authMiddleware = createMiddleware().server(
  */
 export function requireUser(context: { user: AppUser | null }): AppUser {
   if (!context.user) {
-    throw redirect({ to: '/login' })
+    throw redirect({ to: '/login', headers: PRIVATE })
   }
   return context.user
 }

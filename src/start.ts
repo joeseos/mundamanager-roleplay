@@ -1,6 +1,7 @@
 import { createCsrfMiddleware, createMiddleware, createStart } from '@tanstack/react-start'
-import { setResponseStatus } from '@tanstack/react-start/server'
+import { setResponseHeaders, setResponseStatus } from '@tanstack/react-start/server'
 
+import { PRIVATE } from '#/server/cacheHeaders.ts'
 import { HttpError, authMiddleware } from '#/server/middleware.ts'
 
 /**
@@ -16,6 +17,23 @@ import { HttpError, authMiddleware } from '#/server/middleware.ts'
 const csrfMiddleware = createCsrfMiddleware({
   filter: ({ handlerType }) => handlerType === 'serverFn',
 })
+
+/**
+ * A server function's response is built by Start, not by the router, so a
+ * route's `headers` never reaches it and every one of them would otherwise
+ * answer with no cache directive at all.
+ *
+ * Scoped by `handlerType` rather than set from the function middleware below:
+ * SSR calls server functions in process, sharing this request's response
+ * headers, and h3 merges those over the ones the router built -- so setting it
+ * there makes every page uncacheable.
+ */
+const serverFnCacheMiddleware = createMiddleware({ type: 'request' }).server(
+  async ({ next, handlerType }) => {
+    if (handlerType === 'serverFn') setResponseHeaders(new Headers(PRIVATE))
+    return next()
+  },
+)
 
 /**
  * Start captures a thrown error as a value rather than rethrowing it, so the
@@ -34,6 +52,6 @@ const serverFnStatusMiddleware = createMiddleware({ type: 'function' }).server(
 )
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [csrfMiddleware, authMiddleware],
+  requestMiddleware: [csrfMiddleware, authMiddleware, serverFnCacheMiddleware],
   functionMiddleware: [serverFnStatusMiddleware],
 }))
