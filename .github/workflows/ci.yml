@@ -3,6 +3,7 @@ name: ci
 on:
   push:
     branches: [main]
+  pull_request:
 
 # A newer push supersedes an in-flight run of the same branch.
 concurrency:
