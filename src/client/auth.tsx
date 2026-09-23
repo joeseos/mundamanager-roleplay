@@ -6,13 +6,34 @@ import { clearSession, syncSession } from '#/server/fn/session.ts'
 import { getSupabaseClient } from './supabase.ts'
 import type { SupabaseConfig } from './supabase.ts'
 
+type Router = ReturnType<typeof useRouter>
+
 /**
- * The last access token we successfully mirrored into the cookie.
+ * The token the cookie holds or is being set to (null: cleared), and the
+ * round trip that gets it there, router invalidation included.
  *
  * Module scope rather than a ref: onAuthStateChange can fire from more than
- * one mounted subscriber, and this needs to dedupe across all of them.
+ * one mounted subscriber, and sign-in and sign-out also wait on it, so they
+ * all share one sync per change instead of each posting their own.
  */
-let lastSyncedToken: string | null = null
+let mirror: { token: string | null; done: Promise<void> } | null = null
+
+function mirrorToken(router: Router, token: string | null): Promise<void> {
+  if (mirror && mirror.token === token) return mirror.done
+
+  const done = (async () => {
+    if (token) await syncSession({ data: { accessToken: token } })
+    else await clearSession()
+    await router.invalidate()
+  })()
+  const current = { token, done }
+  mirror = current
+  // A failed sync must not look mirrored, or the next attempt would skip it.
+  done.catch(() => {
+    if (mirror === current) mirror = null
+  })
+  return done
+}
 
 /**
  * Keeps the HttpOnly auth cookie in step with the supabase-js session.
@@ -43,33 +64,25 @@ export function useAuthSync(config: SupabaseConfig, serverUserId: string | null)
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return
 
-      void (async () => {
-        if (event === 'SIGNED_OUT' || !session?.access_token) {
-          if (event !== 'SIGNED_OUT') return
-          lastSyncedToken = null
-          await clearSession()
-          await router.invalidate()
-          return
-        }
+      let token: string | null
+      if (event === 'SIGNED_OUT') token = null
+      else if (session?.access_token) token = session.access_token
+      else return
 
-        const token = session.access_token
+      // INITIAL_SESSION fires on every page load and on tab focus. If the
+      // server already resolved us from the cookie, the cookie is current and
+      // there is nothing to do -- syncing here would cost a round trip and a
+      // users upsert on every page view.
+      if (event === 'INITIAL_SESSION' && serverUserId && token) {
+        mirror = { token, done: Promise.resolve() }
+        return
+      }
 
-        // Already mirrored this exact token.
-        if (token === lastSyncedToken) return
-
-        // INITIAL_SESSION fires on every page load and on tab focus. If the
-        // server already resolved us from the cookie, the cookie is current
-        // and there is nothing to do -- syncing here would cost a round trip
-        // and a users upsert on every page view.
-        if (event === 'INITIAL_SESSION' && serverUserId) {
-          lastSyncedToken = token
-          return
-        }
-
-        await syncSession({ data: { accessToken: token } })
-        lastSyncedToken = token
-        await router.invalidate()
-      })()
+      // Sign-in and sign-out surface their own failures; this catches the
+      // ones nobody is waiting on, such as a background token refresh.
+      mirrorToken(router, token).catch((error: unknown) => {
+        console.error('Auth cookie sync failed', error)
+      })
     })
 
     return () => {
@@ -79,6 +92,23 @@ export function useAuthSync(config: SupabaseConfig, serverUserId: string | null)
   }, [config, router, serverUserId])
 }
 
-export async function signOut(config: SupabaseConfig) {
+/**
+ * Resolves once the server knows us and the router has reloaded, so route
+ * guards have already acted on the new session. Throws on a failed sign-in or
+ * a failed cookie sync alike.
+ */
+export async function signIn(
+  config: SupabaseConfig,
+  router: Router,
+  credentials: { email: string; password: string },
+) {
+  const { data, error } = await getSupabaseClient(config).auth.signInWithPassword(credentials)
+  if (error) throw error
+  await mirrorToken(router, data.session.access_token)
+}
+
+/** Resolves once the cookie is cleared and the router has reloaded. */
+export async function signOut(config: SupabaseConfig, router: Router) {
   await getSupabaseClient(config).auth.signOut()
+  await mirrorToken(router, null)
 }

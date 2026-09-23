@@ -162,9 +162,9 @@ Cloudflare is a CDN in front of the origin; it does not run the app. Two rules
 are configured there rather than in this repo, and nothing in the code enforces
 them:
 
-- **Cache Rule on `/` and `/login`** — eligible for cache, bypassing when the
-  auth cookie is present. Cloudflare's cache key ignores `Cookie`, so without
-  the bypass one visitor's signed-in page could be served to everyone. The
+- **Cache Rule on `/sign-in`** — eligible for cache, bypassing when the auth
+  cookie is present. Cloudflare's cache key ignores `Cookie`, so without the
+  bypass one visitor's signed-in page could be served to everyone. The
   origin says `private, no-store` on both `Cache-Control` and
   `CDN-Cache-Control` for a signed-in render, but a Cache Rule with an Edge TTL
   override ignores the former, which is why both are set.

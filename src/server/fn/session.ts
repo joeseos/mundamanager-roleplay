@@ -50,3 +50,15 @@ export const getBootstrap = createServerFn({ method: 'GET' }).handler(
     }
   },
 )
+
+/**
+ * Who the cookie says we are, asked fresh on every call.
+ *
+ * For the redirects between `/` and `/sign-in`. The root loader's copy of the
+ * user is not re-run on client navigation and can lag a sign-in or sign-out,
+ * and two redirects reading different copies bounce off each other forever.
+ * Asking the cookie gives both the same answer.
+ */
+export const getCurrentUser = createServerFn({ method: 'GET' }).handler(({ context }) =>
+  context.user ? toPublicUser(context.user) : null,
+)

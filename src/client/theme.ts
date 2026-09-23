@@ -36,7 +36,7 @@ export function applyTheme(storageKey: string, preference?: string | null): void
 
 /**
  * Runs from `<head>` before the body paints. The SSR HTML carries no theme at
- * all, which is what keeps `/` and `/login` safe to edge-cache.
+ * all, which is what keeps `/sign-in` safe to edge-cache.
  */
 export const themeScript = `(${applyTheme.toString()})(${JSON.stringify(THEME_STORAGE_KEY)})`
 
