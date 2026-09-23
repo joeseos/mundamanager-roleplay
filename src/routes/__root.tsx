@@ -14,6 +14,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { signOut, useAuthSync } from '#/client/auth.tsx'
 import { themeScript } from '#/client/theme.ts'
 import { Button } from '#/components/button.tsx'
+import { Footer } from '#/components/footer.tsx'
 import { ThemeToggle } from '#/components/themeToggle.tsx'
 import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import { getBootstrap } from '#/server/fn/session.ts'
@@ -65,8 +66,12 @@ function RootLayout() {
   useAuthSync(supabase, user?.id ?? null)
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-line bg-chrome shadow-md">
+    // The padding makes room for the header: 3.5rem of nav plus its 1px border.
+    <div className="flex min-h-screen flex-col pt-[calc(3.5rem+1px)] print:pt-0">
+      {/* Fixed rather than sticky: a sticky header rides the overscroll bounce
+          down with the page and bares the backdrop above it. Hidden in print,
+          where a fixed element repeats over every page's content. */}
+      <header className="fixed inset-x-0 top-0 z-10 border-b border-line bg-chrome shadow-md print:hidden">
         <nav className="flex h-14 items-center justify-between gap-4 px-2">
           <Link to="/" className="flex items-center">
             {/* Decorative: the wordmark beside it carries the name. Both are
@@ -119,7 +124,11 @@ function RootLayout() {
           </div>
         </nav>
       </header>
-      <Outlet />
+      {/* Grows so the footer sits at the bottom of short pages. */}
+      <div className="flex-1">
+        <Outlet />
+      </div>
+      <Footer />
     </div>
   )
 }
