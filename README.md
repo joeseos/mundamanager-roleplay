@@ -175,6 +175,44 @@ Bot Fight Mode is enabled, which is why the deploy runs through the Coolify
 GitHub App rather than a webhook call from CI: it managed-challenges requests
 from GitHub Actions runners.
 
+## Pull request review
+
+The review criteria live in one file,
+[`.github/review-prompt.md`](.github/review-prompt.md), and two things use it.
+
+**Before opening a PR (optional).** Paste that file into a coding assistant and
+ask it to review your local changes in the chat. It is the same prompt the
+automated review runs, so a clean local pass is a good predictor of a clean
+PR review.
+
+**On the PR.** When a PR is opened as non-draft, the `claude-review` check runs
+the review once and posts every finding as a single comment. The reviewer is
+read-only: it comments, and cannot change files on your branch.
+
+- **Green check** — the review ran. Read the comment.
+- **Red check** — the review did **not** run, and a comment on the PR says why.
+  The most common cause is the maintainer's Claude usage limit; that is not a
+  problem with the PR. Human review is then required before merge.
+
+That first review is the only automatic one: pushing more commits does not
+re-review, and neither does marking a draft ready. Ask for every follow-up with
+the `claude-review` label — remove and re-add it if it is already there, since
+GitHub only fires on the change. It works on drafts too. Each re-run posts a
+new review and folds the previous one into a collapsed block. The check never
+blocks a merge.
+
+Pull requests from forks are never reviewed automatically, label or not:
+GitHub withholds the repository secrets the workflow needs. Bot PRs (such as
+Dependabot) are skipped too.
+
+The workflow reads the prompt from the base branch, never from the PR, so a PR
+cannot rewrite the criteria it is reviewed against. Setup, done once by hand:
+
+- Repository secret `CLAUDE_CODE_OAUTH_TOKEN`, generated with
+  `claude setup-token`. It shares the subscription's usage limit; switch the
+  workflow to `anthropic_api_key` to decouple the two.
+- A `claude-review` label in the repository.
+
 ## Layout
 
 ```
