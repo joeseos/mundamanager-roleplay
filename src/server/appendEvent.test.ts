@@ -8,6 +8,7 @@ import type { Table, User } from '#/db/schema.ts'
 
 import { appendSessionEvent } from './appendEvent.ts'
 import { listenerCount, subscribe } from './events.ts'
+import { readEventsSince } from './sessionLog.ts'
 
 let gm: User
 let table: Table
@@ -135,5 +136,25 @@ describe('appendSessionEvent', () => {
     ).rejects.toMatchObject({ status: 404 })
 
     expect(listenerCount(sessionId)).toBe(0)
+  })
+})
+
+describe('readEventsSince', () => {
+  beforeEach(async () => {
+    for (let i = 0; i < 5; i += 1) {
+      await appendSessionEvent({ sessionId, type: 'note', actorUserId: gm.id })
+    }
+  })
+
+  it('replays everything after the bound when unlimited', async () => {
+    const all = await readEventsSince(sessionId, 0)
+
+    expect(all.map((event) => event.seq)).toEqual([1, 2, 3, 4, 5])
+  })
+
+  it('takes the newest when limited, still oldest-first', async () => {
+    const tail = await readEventsSince(sessionId, 0, 2)
+
+    expect(tail.map((event) => event.seq)).toEqual([4, 5])
   })
 })

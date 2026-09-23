@@ -191,8 +191,7 @@ export const Route = createFileRoute('/api/sessions/$sessionId/events')({
         return new Response(stream, {
           headers: {
             'Content-Type': 'text/event-stream; charset=utf-8',
-            'Cache-Control': 'no-cache, no-transform',
-            Connection: 'keep-alive',
+            'Cache-Control': 'private, no-cache, no-transform',
             // nginx-specific. Coolify fronts with Traefik, which does not
             // buffer, so this is belt-and-braces for other proxies.
             'X-Accel-Buffering': 'no',

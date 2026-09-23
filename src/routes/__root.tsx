@@ -3,14 +3,13 @@ import {
   Link,
   Outlet,
   Scripts,
-  createRootRouteWithContext,
+  createRootRoute,
   useRouter,
   useRouterState,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { signOut, useAuthSync } from '#/client/auth.tsx'
 import { Button } from '#/components/button.tsx'
 import { privatePageHeaders } from '#/server/cacheHeaders.ts'
@@ -18,16 +17,10 @@ import { getBootstrap } from '#/server/fn/session.ts'
 
 import appCss from '../styles.css?url'
 
-import type { QueryClient } from '@tanstack/react-query'
-
 /** Kept in step with the `body::before` rule in styles.css. */
 const BACKGROUND_URL = '/background_numv5r.avif'
 
-interface RouterContext {
-  queryClient: QueryClient
-}
-
-export const Route = createRootRouteWithContext<RouterContext>()({
+export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -130,10 +123,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {import.meta.env.DEV && (
           <TanStackDevtools
             config={{ position: 'bottom-right' }}
-            plugins={[
-              { name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> },
-              TanStackQueryDevtools,
-            ]}
+            plugins={[{ name: 'TanStack Router', render: <TanStackRouterDevtoolsPanel /> }]}
           />
         )}
         <Scripts />
