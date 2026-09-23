@@ -88,7 +88,7 @@ function RootLayout() {
               height={36}
               className="mr-2 ml-1 hidden dark:block"
             />
-            <span className="text-lg font-bold transition-colors hover:text-amber-500">
+            <span className="text-lg font-bold transition-colors hover:text-neutral-900 dark:hover:text-neutral-50">
               Munda Manager Roleplay
             </span>
           </Link>
