@@ -17,7 +17,7 @@ const INFO = [
 ];
 
 /** Font Awesome brand icons, as Munda Manager draws them (via react-icons). */
-const SOCIALS = [
+export const SOCIALS = [
   {
     label: "Join our Discord server",
     href: "https://discord.gg/ZWXXqd5NUt",
