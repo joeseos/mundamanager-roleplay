@@ -50,6 +50,15 @@
     color-mix(in oklab, var(--color-white) 90%, transparent),
     color-mix(in oklab, var(--color-stone-900) 70%, transparent)
   );
+  /*
+   * Munda Manager's shadcn palette (`--card`, `--muted`, `--border`,
+   * `--muted-foreground` in its globals.css), for pages laid out as its cards.
+   * Opaque, as there: the card is what makes the text readable on the backdrop.
+   */
+  --color-card: light-dark(hsl(0 0% 100%), hsl(0 0% 3.9%));
+  --color-muted: light-dark(hsl(0 0% 96.1%), hsl(0 0% 14.9%));
+  --color-muted-fg: light-dark(hsl(220 14% 34%), hsl(0 0% 63.9%));
+  --color-edge: light-dark(hsl(0 0% 89.8%), hsl(0 0% 11.9%));
   --color-accent: light-dark(var(--color-amber-700), var(--color-amber-400));
   --color-danger: light-dark(var(--color-red-700), var(--color-red-400));
 }
