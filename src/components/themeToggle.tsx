@@ -10,7 +10,7 @@ import type { ThemePreference } from '#/client/theme.ts'
  * popover/accent tokens spelled out as the neutral shades they resolve to.
  */
 
-function Icon({ children, ...props }: SVGProps<SVGSVGElement> & { children: ReactNode }) {
+export function Icon({ children, ...props }: SVGProps<SVGSVGElement> & { children: ReactNode }) {
   return (
     <svg
       viewBox="0 0 24 24"

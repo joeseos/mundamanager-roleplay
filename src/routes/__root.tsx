@@ -5,17 +5,16 @@ import {
   ScriptOnce,
   Scripts,
   createRootRoute,
-  useRouter,
   useRouterState,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import { signOut, useAuthSync } from '#/client/auth.tsx'
+import { useAuthSync } from '#/client/auth.tsx'
 import { themeScript } from '#/client/theme.ts'
-import { Button } from '#/components/button.tsx'
 import { Footer } from '#/components/footer.tsx'
 import { ThemeToggle } from '#/components/themeToggle.tsx'
+import { UserMenu } from '#/components/userMenu.tsx'
 import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import { getBootstrap } from '#/server/fn/session.ts'
 
@@ -61,7 +60,6 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { supabase, user } = Route.useLoaderData()
-  const router = useRouter()
   const pathname = useRouterState({ select: (state) => state.location.pathname })
   useAuthSync(supabase, user?.id ?? null)
 
@@ -94,26 +92,10 @@ function RootLayout() {
               Munda Manager Roleplay
             </span>
           </Link>
-          <div className="mr-2 flex items-center gap-3 text-sm">
+          <div className="mr-2 flex items-center gap-2 text-sm">
             <ThemeToggle />
             {user ? (
-              <>
-                <Link to="/tables" className="text-fg-muted hover:text-fg">
-                  Tables
-                </Link>
-                <span className="text-fg-muted">{user.displayName}</span>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="px-2 py-1 text-fg-muted"
-                  onClick={async () => {
-                    await signOut(supabase, router)
-                    await router.navigate({ to: '/sign-in' })
-                  }}
-                >
-                  Sign out
-                </Button>
-              </>
+              <UserMenu user={user} supabase={supabase} />
             ) : pathname === '/sign-in' ? null : (
               // The sign-in page already has the form; a link to the page you
               // are on is just noise.
