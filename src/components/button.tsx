@@ -2,10 +2,10 @@ import type { ButtonHTMLAttributes } from 'react'
 
 type ButtonVariant = 'primary' | 'secondary'
 
+/** Munda Manager's `default` and `outline` button variants (components/ui/button.tsx there). */
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary:
-    'bg-stone-900 text-stone-50 hover:bg-stone-700 dark:bg-stone-100 dark:text-stone-950 dark:hover:bg-white',
-  secondary: 'border border-line-strong hover:bg-panel-hover',
+  primary: 'bg-neutral-900 text-white hover:bg-gray-800',
+  secondary: 'border border-edge bg-card hover:bg-muted',
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -15,7 +15,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({ variant = 'primary', className = '', ...props }: ButtonProps) {
   return (
     <button
-      className={`rounded font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-md text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-neutral-300 ${VARIANT_CLASSES[variant]} ${className}`}
       {...props}
     />
   )

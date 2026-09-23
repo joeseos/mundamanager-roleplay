@@ -4,6 +4,10 @@ import { useState } from 'react'
 import { Button } from '#/components/button.tsx'
 import { createTable, joinTable, listMyTables } from '#/server/fn/tables.ts'
 
+/** Munda Manager's Input (components/ui/input.tsx there). */
+const INPUT_CLASSES =
+  'h-10 w-full rounded-md border border-edge bg-muted px-3 py-2 text-base placeholder:text-muted-fg focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:outline-hidden md:text-sm dark:focus-visible:ring-neutral-300'
+
 export const Route = createFileRoute('/tables/')({
   loader: () => listMyTables(),
   component: TablesIndex,
@@ -37,25 +41,83 @@ function TablesIndex() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl rounded-b-lg bg-page space-y-8 p-8">
-      <section>
-        <h1 className="text-2xl font-bold">Your tables</h1>
+    // Laid out as Munda Manager's home page: a card of actions, then a card
+    // listing your campaigns (components/home/campaigns-tab.tsx there).
+    <main className="mx-auto w-full max-w-4xl space-y-4 px-[10px] py-4">
+      <section className="rounded-lg bg-card p-4 shadow-md">
+        <h1 className="mb-2 text-xl font-bold md:text-2xl">Tables</h1>
+        <p className="mb-4 text-muted-fg">
+          Create a table and be its Arbitrator, or join an existing one with a join code.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <form onSubmit={onCreate} className="flex flex-col gap-2">
+            <label htmlFor="table-name" className="text-sm font-medium text-muted-fg">
+              Run a new table
+            </label>
+            <input
+              id="table-name"
+              required
+              maxLength={80}
+              placeholder="Table name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={INPUT_CLASSES}
+            />
+            <Button type="submit" className="h-10 w-full px-4 py-2">
+              Create as Arbitrator
+            </Button>
+          </form>
+
+          <form onSubmit={onJoin} className="flex flex-col gap-2">
+            <label htmlFor="join-code" className="text-sm font-medium text-muted-fg">
+              Join a table
+            </label>
+            <input
+              id="join-code"
+              required
+              maxLength={12}
+              placeholder="Join code"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              className={`font-mono tracking-widest ${INPUT_CLASSES}`}
+            />
+            <Button type="submit" variant="secondary" className="h-10 w-full px-4 py-2">
+              Join as player
+            </Button>
+          </form>
+        </div>
+        {error ? <p className="mt-2 text-sm text-red-500">{error}</p> : null}
+      </section>
+
+      <section className="rounded-lg bg-card p-4 shadow-md">
+        <h2 className="mb-4 text-xl font-bold md:text-2xl">Your Tables</h2>
         {myTables.length === 0 ? (
-          <p className="mt-2 text-fg-muted">
+          <p className="text-center text-muted-fg">
             Nothing yet. Create a table to run one, or join with a code.
           </p>
         ) : (
-          <ul className="mt-4 space-y-2">
+          <ul className="space-y-3">
             {myTables.map((table) => (
               <li key={table.id}>
                 <Link
                   to="/tables/$tableId"
                   params={{ tableId: table.id }}
-                  className="flex items-center justify-between rounded border border-line bg-panel p-3 hover:bg-panel-hover"
+                  className="flex items-center rounded-md p-2 transition-colors duration-200 hover:bg-muted md:p-4"
                 >
-                  <span className="font-medium">{table.name}</span>
-                  <span className="text-xs uppercase tracking-wide text-fg-muted">
-                    {table.role}
+                  {/* Munda Manager's fallback when a campaign has no image. */}
+                  <span
+                    aria-hidden
+                    className="mr-3 flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-muted text-xl md:mr-4"
+                  >
+                    {table.name.charAt(0)}
+                  </span>
+                  <span className="min-w-0 grow">
+                    <span className="block truncate text-lg font-medium md:text-xl">
+                      {table.name}
+                    </span>
+                    <span className="block text-sm text-muted-fg capitalize md:text-base">
+                      {table.role}
+                    </span>
                   </span>
                 </Link>
               </li>
@@ -63,40 +125,6 @@ function TablesIndex() {
           </ul>
         )}
       </section>
-
-      <section className="grid gap-6 sm:grid-cols-2">
-        <form onSubmit={onCreate} className="space-y-2">
-          <h2 className="font-semibold">Run a new table</h2>
-          <input
-            required
-            maxLength={80}
-            placeholder="Table name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border border-line-strong bg-field px-3 py-2"
-          />
-          <Button type="submit" className="w-full px-3 py-2">
-            Create as Arbitrator
-          </Button>
-        </form>
-
-        <form onSubmit={onJoin} className="space-y-2">
-          <h2 className="font-semibold">Join a table</h2>
-          <input
-            required
-            maxLength={12}
-            placeholder="Join code"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            className="w-full rounded border border-line-strong bg-field px-3 py-2 font-mono tracking-widest"
-          />
-          <Button type="submit" variant="secondary" className="w-full px-3 py-2">
-            Join as player
-          </Button>
-        </form>
-      </section>
-
-      {error ? <p className="text-sm text-danger">{error}</p> : null}
     </main>
   )
 }
