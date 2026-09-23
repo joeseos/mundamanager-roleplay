@@ -1,9 +1,57 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
 
+/*
+ * The theme lives on <html>: src/client/theme.ts sets a `dark` or `light`
+ * class and `color-scheme` before first paint. With no class (scripts off),
+ * both follow the OS.
+ */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not(.light), :root:not(.light) *) {
+      @slot;
+    }
+  }
+}
+
 /* Matches Munda Manager, which loads Inter through next/font. */
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Semantic colours, each `light-dark(light, dark)` and resolved by the
+ * `color-scheme` above. The dark side is the app's original palette.
+ *
+ * Surfaces carry their own alpha so light mode can be more opaque: the
+ * underhive backdrop is the same dark image in both themes, and dark text
+ * needs a paler sheet under it than light text does.
+ */
+@theme {
+  --color-fg: light-dark(var(--color-stone-900), var(--color-stone-100));
+  --color-fg-muted: light-dark(var(--color-stone-700), var(--color-stone-300));
+  --color-fg-subtle: light-dark(var(--color-stone-500), var(--color-stone-400));
+  --color-line: light-dark(var(--color-stone-300), var(--color-stone-800));
+  --color-line-strong: light-dark(var(--color-stone-400), var(--color-stone-700));
+  --color-chrome: light-dark(var(--color-stone-100), var(--color-stone-950));
+  --color-page: light-dark(color-mix(in oklab, var(--color-stone-50) 80%, transparent), transparent);
+  --color-panel: light-dark(
+    color-mix(in oklab, var(--color-stone-50) 85%, transparent),
+    color-mix(in oklab, var(--color-stone-950) 60%, transparent)
+  );
+  --color-panel-hover: light-dark(
+    color-mix(in oklab, var(--color-white) 95%, transparent),
+    color-mix(in oklab, var(--color-stone-900) 80%, transparent)
+  );
+  --color-field: light-dark(
+    color-mix(in oklab, var(--color-white) 90%, transparent),
+    color-mix(in oklab, var(--color-stone-900) 70%, transparent)
+  );
+  --color-accent: light-dark(var(--color-amber-700), var(--color-amber-400));
+  --color-danger: light-dark(var(--color-red-700), var(--color-red-400));
 }
 
 * {
@@ -22,7 +70,16 @@ body,
  * backdrop entirely.
  */
 html {
-  background-color: #0c0a09;
+  color-scheme: light dark;
+  background-color: light-dark(var(--color-stone-200), #0c0a09);
+}
+
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
