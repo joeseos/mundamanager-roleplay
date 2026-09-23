@@ -2,6 +2,7 @@ import {
   HeadContent,
   Link,
   Outlet,
+  ScriptOnce,
   Scripts,
   createRootRoute,
   useRouter,
@@ -11,7 +12,9 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import { signOut, useAuthSync } from '#/client/auth.tsx'
+import { themeScript } from '#/client/theme.ts'
 import { Button } from '#/components/button.tsx'
+import { ThemeToggle } from '#/components/themeToggle.tsx'
 import { privatePageHeaders } from '#/server/cacheHeaders.ts'
 import { getBootstrap } from '#/server/fn/session.ts'
 
@@ -26,7 +29,6 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Munda Manager Roleplay' },
-      { name: 'theme-color', content: '#000000' },
       {
         name: 'description',
         content: 'A companion tool for Necromunda Roleplay.',
@@ -64,46 +66,57 @@ function RootLayout() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-stone-800 bg-stone-950 shadow-md">
+      <header className="sticky top-0 z-10 border-b border-line bg-chrome shadow-md">
         <nav className="flex h-14 items-center justify-between gap-4 px-2">
           <Link to="/" className="flex items-center">
-            {/* Decorative: the wordmark beside it carries the name. */}
+            {/* Decorative: the wordmark beside it carries the name. Both are
+                in the markup so the right one shows before hydration. */}
+            <img
+              src="/images/favicon-36x36-black.png"
+              alt=""
+              width={36}
+              height={36}
+              className="mr-2 ml-1 dark:hidden"
+            />
             <img
               src="/images/favicon-36x36-white.png"
               alt=""
               width={36}
               height={36}
-              className="mr-2 ml-1"
+              className="mr-2 ml-1 hidden dark:block"
             />
             <span className="text-lg font-bold transition-colors hover:text-amber-500">
               Munda Manager Roleplay
             </span>
           </Link>
-          {user ? (
-            <div className="mr-2 flex items-center gap-3 text-sm">
-              <Link to="/tables" className="text-stone-300 hover:text-stone-100">
-                Tables
+          <div className="mr-2 flex items-center gap-3 text-sm">
+            <ThemeToggle />
+            {user ? (
+              <>
+                <Link to="/tables" className="text-fg-muted hover:text-fg">
+                  Tables
+                </Link>
+                <span className="text-fg-muted">{user.displayName}</span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="px-2 py-1 text-fg-muted"
+                  onClick={async () => {
+                    await signOut(supabase)
+                    await router.navigate({ to: '/login' })
+                  }}
+                >
+                  Sign out
+                </Button>
+              </>
+            ) : pathname === '/login' ? null : (
+              // The login page already has the form; a link to the page you
+              // are on is just noise.
+              <Link to="/login" className="text-fg-muted hover:text-fg">
+                Sign in
               </Link>
-              <span className="text-stone-300">{user.displayName}</span>
-              <Button
-                type="button"
-                variant="secondary"
-                className="px-2 py-1 text-stone-300"
-                onClick={async () => {
-                  await signOut(supabase)
-                  await router.navigate({ to: '/login' })
-                }}
-              >
-                Sign out
-              </Button>
-            </div>
-          ) : pathname === '/login' ? null : (
-            // The login page already has the form; a link to the page you are
-            // on is just noise.
-            <Link to="/login" className="mr-2 text-sm text-stone-300 hover:text-stone-100">
-              Sign in
-            </Link>
-          )}
+            )}
+          </div>
         </nav>
       </header>
       <Outlet />
@@ -113,11 +126,18 @@ function RootLayout() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // The head script adds the theme class before React hydrates.
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <ScriptOnce>{themeScript}</ScriptOnce>
         <HeadContent />
+        {/* Here rather than in `head()`, which dedupes meta by name and would
+            keep only one. They follow the OS rather than the in-app choice:
+            browsers read them before any script runs. */}
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f4" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
       </head>
-      <body className="text-stone-100 antialiased">
+      <body className="text-fg antialiased">
         {children}
         {/* Statically false in production, so the panels drop out of the bundle. */}
         {import.meta.env.DEV && (

@@ -45,8 +45,8 @@ function Login() {
 
   if (user) {
     return (
-      <main className="mx-auto max-w-sm p-8">
-        <p className="text-stone-300">
+      <main className="mx-auto max-w-sm rounded-b-lg bg-page p-8">
+        <p className="text-fg-muted">
           Signed in as <strong>{user.displayName}</strong>.
         </p>
       </main>
@@ -54,9 +54,9 @@ function Login() {
   }
 
   return (
-    <main className="mx-auto max-w-sm p-8">
+    <main className="mx-auto max-w-sm rounded-b-lg bg-page p-8">
       <h1 className="text-2xl font-bold">Sign in</h1>
-      <p className="mt-1 text-sm text-stone-300">
+      <p className="mt-1 text-sm text-fg-muted">
         Use your existing Munda Manager account.
       </p>
 
@@ -68,7 +68,7 @@ function Login() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
+          className="w-full rounded border border-line-strong bg-field px-3 py-2"
         />
         <input
           type="password"
@@ -77,7 +77,7 @@ function Login() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded border border-stone-700 bg-stone-900/70 px-3 py-2"
+          className="w-full rounded border border-line-strong bg-field px-3 py-2"
         />
         <Button type="submit" disabled={busy} className="w-full px-3 py-2">
           {busy ? 'Signing in...' : 'Sign in'}
@@ -85,7 +85,7 @@ function Login() {
       </form>
 
 
-      {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+      {error ? <p className="mt-4 text-sm text-danger">{error}</p> : null}
     </main>
   )
 }
