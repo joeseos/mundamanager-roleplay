@@ -50,9 +50,9 @@ export const Route = createRootRoute({
   }),
   loader: () => getBootstrap(),
   // Secure-by-default: a route that forgets to set its own `headers` still
-  // ends up non-cacheable. `/` and `/login` are the only ones that opt out
-  // of this by setting their own (a leaf route's headers win over the
-  // root's, per @tanstack/router-core's header merge).
+  // ends up non-cacheable. `/sign-in` is the only one that opts out of this
+  // by setting its own (a leaf route's headers win over the root's, per
+  // @tanstack/router-core's header merge).
   headers: privatePageHeaders,
   shellComponent: RootDocument,
   component: RootLayout,
@@ -102,17 +102,17 @@ function RootLayout() {
                   variant="secondary"
                   className="px-2 py-1 text-fg-muted"
                   onClick={async () => {
-                    await signOut(supabase)
-                    await router.navigate({ to: '/login' })
+                    await signOut(supabase, router)
+                    await router.navigate({ to: '/sign-in' })
                   }}
                 >
                   Sign out
                 </Button>
               </>
-            ) : pathname === '/login' ? null : (
-              // The login page already has the form; a link to the page you
+            ) : pathname === '/sign-in' ? null : (
+              // The sign-in page already has the form; a link to the page you
               // are on is just noise.
-              <Link to="/login" className="text-fg-muted hover:text-fg">
+              <Link to="/sign-in" className="text-fg-muted hover:text-fg">
                 Sign in
               </Link>
             )}

@@ -47,7 +47,7 @@ async function resolveUser(request: Request): Promise<AppUser | null> {
  * so the SSE route and every server function share this single code path.
  *
  * It never throws: unauthenticated requests get `user: null` so that SSR of
- * public pages (notably /login) still works. Use `requireUser` at the point
+ * public pages (notably /sign-in) still works. Use `requireUser` at the point
  * where a caller actually needs an identity.
  */
 export const authMiddleware = createMiddleware().server(
@@ -56,7 +56,7 @@ export const authMiddleware = createMiddleware().server(
 
 /**
  * Throws a redirect rather than a 401 so that an expired cookie on a page load
- * lands the caller on /login instead of an error boundary. Start carries a
+ * lands the caller on /sign-in instead of an error boundary. Start carries a
  * thrown redirect across the server-function boundary.
  *
  * The SSE route does not use this: EventSource cannot follow a redirect
@@ -64,7 +64,7 @@ export const authMiddleware = createMiddleware().server(
  */
 export function requireUser(context: { user: AppUser | null }): AppUser {
   if (!context.user) {
-    throw redirect({ to: '/login', headers: PRIVATE })
+    throw redirect({ to: '/sign-in', headers: PRIVATE })
   }
   return context.user
 }

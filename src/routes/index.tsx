@@ -1,9 +1,17 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { publicPageHeaders } from '#/server/cacheHeaders.ts'
+import { PRIVATE } from '#/server/cacheHeaders.ts'
+import { getCurrentUser } from '#/server/fn/session.ts'
 
 export const Route = createFileRoute('/')({
-  headers: publicPageHeaders,
+  // Signed-out visitors start at /sign-in, as on Munda Manager. No `headers`
+  // of its own: every page this route renders is a signed-in one, so the
+  // root's private default is the right one.
+  beforeLoad: async () => {
+    if (!(await getCurrentUser())) {
+      throw redirect({ to: '/sign-in', headers: PRIVATE })
+    }
+  },
   component: Home,
 })
 

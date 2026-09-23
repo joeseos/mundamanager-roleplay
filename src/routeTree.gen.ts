@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as SessionsSessionIdRouteImport } from './routes/sessions/$sessionId'
 import { Route as TablesIndexRouteImport } from './routes/tables/index'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -63,6 +69,7 @@ const ApiSessionsSessionIdEventsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/sign-in': typeof SignInRoute
   '/api/health': typeof ApiHealthRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/tables/$tableId': typeof TablesTableIdRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/sign-in': typeof SignInRoute
   '/api/health': typeof ApiHealthRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/tables/$tableId': typeof TablesTableIdRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/sign-in': typeof SignInRoute
   '/api/health': typeof ApiHealthRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/tables/$tableId': typeof TablesTableIdRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/sign-in'
     | '/api/health'
     | '/sessions/$sessionId'
     | '/tables/$tableId'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/sign-in'
     | '/api/health'
     | '/sessions/$sessionId'
     | '/tables/$tableId'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/sign-in'
     | '/api/health'
     | '/sessions/$sessionId'
     | '/tables/$tableId'
@@ -127,6 +139,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  SignInRoute: typeof SignInRoute
   ApiHealthRoute: typeof ApiHealthRoute
   SessionsSessionIdRoute: typeof SessionsSessionIdRoute
   TablesTableIdRoute: typeof TablesTableIdRoute
@@ -149,6 +162,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -199,6 +219,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  SignInRoute: SignInRoute,
   ApiHealthRoute: ApiHealthRoute,
   SessionsSessionIdRoute: SessionsSessionIdRoute,
   TablesTableIdRoute: TablesTableIdRoute,
